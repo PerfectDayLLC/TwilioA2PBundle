@@ -9,7 +9,7 @@ class CreateFakeEntityTable extends Migration
     public function up(): void
     {
         Schema::create('entities', function (Blueprint $table) {
-            $table->id();
+            $table->bigIncrements('id');
             $table->string('company_name');
             $table->string('address');
             $table->string('city');
