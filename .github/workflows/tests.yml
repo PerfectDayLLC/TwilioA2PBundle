@@ -20,8 +20,7 @@ jobs:
         image: mysql:5.7
         env:
           MYSQL_DATABASE: app
-          MYSQL_HOST: 127.0.0.1
-          MYSQL_ROOT_PASSWORD: root
+          MYSQL_ALLOW_EMPTY_PASSWORD: yes
         ports:
           - 3306:3306
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
@@ -47,3 +46,5 @@ jobs:
 
       - name: Execute tests
         run: vendor/bin/phpunit --verbose
+        env:
+          DB_HOST: 127.0.0.1
