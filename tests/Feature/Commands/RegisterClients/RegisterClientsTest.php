@@ -25,7 +25,7 @@ class RegisterClientsTest extends TestCase
         $this->registerService = $this->createExpectedService();
 
         /** @var Entity $entity */
-        $entity = Entity::factory()->create([
+        $entity = factory(Entity::class)->create([
             'company_name' => 'test company',
             'address' => 'Address 123 A',
             'city' => 'Tampa',

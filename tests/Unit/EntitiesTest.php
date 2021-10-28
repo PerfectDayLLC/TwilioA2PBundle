@@ -23,7 +23,7 @@ class EntitiesTest extends TestCase
         $clientRegistrationHistory = null;
         if ($withClientRegistrationHistoryModel) {
             /** @var ClientRegistrationHistory $clientRegistrationHistory */
-            $clientRegistrationHistory = ClientRegistrationHistory::factory()->create();
+            $clientRegistrationHistory = factory(ClientRegistrationHistory::class)->create();
         }
 
         $clientData = new ClientData(
@@ -94,7 +94,7 @@ class EntitiesTest extends TestCase
     public function test_client_registration_history_response_data_getters(bool $error): void
     {
         /** @var ClientRegistrationHistory $fakeData */
-        $fakeData = ClientRegistrationHistory::factory()->make();
+        $fakeData = factory(ClientRegistrationHistory::class)->make();
 
         $clientRegistrationHistoryResponseData = new ClientRegistrationHistoryResponseData(
             $id = ($this->faker()->randomDigit() + 1),

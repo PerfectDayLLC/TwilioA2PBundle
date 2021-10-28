@@ -23,6 +23,6 @@
         <server name="APP_KEY" value="AckfSECXIvnK5r28GVIWUAxmbBSjTsmF"/>
         <env name="DB_HOST" value="mysql"/>
         <server name="DB_USERNAME" value="root"/>
-        <server name="PERFECTDAYLLC_TWILIO_A2P_BUNDLE_ENTITY_MODEL" value="\PerfectDayLlc\TwilioA2PBundle\Tests\Fake\Models\Entity"/>
+        <server name="PERFECTDAYLLC_TWILIO_A2P_BUNDLE_ENTITY_MODEL" value="PerfectDayLlc\TwilioA2PBundle\Tests\Fake\Models\Entity"/>
     </php>
 </phpunit>

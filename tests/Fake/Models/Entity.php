@@ -2,14 +2,12 @@
 
 namespace PerfectDayLlc\TwilioA2PBundle\Tests\Fake\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use PerfectDayLlc\TwilioA2PBundle\Contracts\ClientRegistrationHistory as ClientRegistrationHistoryContract;
 use PerfectDayLlc\TwilioA2PBundle\Entities\ClientData;
 use PerfectDayLlc\TwilioA2PBundle\Entities\ClientOwnerData;
 use PerfectDayLlc\TwilioA2PBundle\Models\ClientRegistrationHistory;
-use PerfectDayLlc\TwilioA2PBundle\Tests\Database\Factories\EntityFactory;
 
 /**
  * @property string $id
@@ -33,13 +31,6 @@ use PerfectDayLlc\TwilioA2PBundle\Tests\Database\Factories\EntityFactory;
  */
 class Entity extends Model implements ClientRegistrationHistoryContract
 {
-    use HasFactory;
-
-    public static function newFactory(): EntityFactory
-    {
-        return new EntityFactory();
-    }
-
     public function twilioA2PClientRegistrationHistories(): HasMany
     {
         return $this->hasMany(ClientRegistrationHistory::class);

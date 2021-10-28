@@ -18,10 +18,10 @@ class ModelTest extends TestCase
     public function test_get_latest_bundle_sid_for_allowed_statuses(string $status): void
     {
         /** @var Entity $entity */
-        $entity = Entity::factory()->create();
+        $entity = factory(Entity::class)->create();
 
         // Old (not recent)
-        ClientRegistrationHistoryFake::factory()
+        factory(ClientRegistrationHistoryFake::class)
             ->create([
                 'entity_id' => $entity->id,
                 'request_type' => 'messageService',
@@ -30,7 +30,7 @@ class ModelTest extends TestCase
             ]);
 
         // The one I expect to get back as the latest
-        ClientRegistrationHistoryFake::factory()
+        factory(ClientRegistrationHistoryFake::class)
             ->create([
                 'entity_id' => $entity->id,
                 'request_type' => 'messageService',
@@ -40,7 +40,7 @@ class ModelTest extends TestCase
             ]);
 
         // Latest but not assigned to my entity
-        ClientRegistrationHistoryFake::factory()
+        factory(ClientRegistrationHistoryFake::class)
             ->create([
                 'request_type' => 'messageService',
                 'bundle_sid' => 'my_bundle_id_456',
@@ -49,7 +49,7 @@ class ModelTest extends TestCase
             ]);
 
         // Latest but has different request_type
-        ClientRegistrationHistoryFake::factory()->create([
+        factory(ClientRegistrationHistoryFake::class)->create([
             'entity_id' => $entity->id,
             'request_type' => 'a2pBundleSubmit',
             'status' => $status,
@@ -57,7 +57,7 @@ class ModelTest extends TestCase
         ]);
 
         // Latest but has not allowed status
-        ClientRegistrationHistoryFake::factory()->create([
+        factory(ClientRegistrationHistoryFake::class)->create([
             'entity_id' => $entity->id,
             'request_type' => 'messageService',
             'status' => 'compliant',
@@ -78,10 +78,10 @@ class ModelTest extends TestCase
     public function test_it_returns_empty_string_when_none_found(string $status): void
     {
         /** @var Entity $entity */
-        $entity = Entity::factory()->create();
+        $entity = factory(Entity::class)->create();
 
         // Latest
-        ClientRegistrationHistoryFake::factory()->create([
+        factory(ClientRegistrationHistoryFake::class)->create([
             'entity_id' => $entity->id,
             'request_type' => 'messageService',
             'status' => 'compliant',
@@ -89,7 +89,7 @@ class ModelTest extends TestCase
         ]);
 
         // Latest but not assigned to my entity
-        ClientRegistrationHistoryFake::factory()
+        factory(ClientRegistrationHistoryFake::class)
             ->create([
                 'request_type' => 'messageService',
                 'status' => $status,
@@ -111,7 +111,7 @@ class ModelTest extends TestCase
     public function test_get_client_data_returns_expected_data(bool $hasHistory): void
     {
         /** @var Entity $entity */
-        $entity = Entity::factory()->create([
+        $entity = factory(Entity::class)->create([
             'company_name' => $companyName = 'test company',
             'address' => $address = 'Address 123 A',
             'city' => $city = 'Tampa',
