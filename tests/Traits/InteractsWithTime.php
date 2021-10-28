@@ -3,7 +3,7 @@
 namespace PerfectDayLlc\TwilioA2PBundle\Tests\Traits;
 
 use DateTimeInterface;
-use Illuminate\Foundation\Testing\Wormhole;
+use PerfectDayLlc\TwilioA2PBundle\Tests\Wormhole;
 use Illuminate\Support\Carbon;
 
 trait InteractsWithTime
@@ -12,7 +12,7 @@ trait InteractsWithTime
      * Begin travelling to another time.
      *
      * @param  int  $value
-     * @return \Illuminate\Foundation\Testing\Wormhole
+     * @return Wormhole
      */
     public function travel($value)
     {
