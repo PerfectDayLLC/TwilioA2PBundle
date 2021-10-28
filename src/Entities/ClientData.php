@@ -2,6 +2,8 @@
 
 namespace PerfectDayLlc\TwilioA2PBundle\Entities;
 
+use PerfectDayLlc\TwilioA2PBundle\Models\ClientRegistrationHistory;
+
 class ClientData
 {
     /**
@@ -35,24 +37,16 @@ class ClientData
 
     private string $contactPhone;
 
-    /**
-     * @return string|int
-     */
-    private $userId;
+    private string $webhookUrl;
+
+    private string $fallbackWebhookUrl;
 
     private ClientOwnerData $clientOwnerData;
 
-    /**
-     * @return string|int|null
-     */
-    private $registrationHistoryId;
-
-    private ?string $customerRegistrationStatus;
+    private ?ClientRegistrationHistory $clientRegistrationHistoryModel;
 
     /**
      * @param  string|int  $id
-     * @param  string|int  $userId
-     * @param  string|int|null  $registrationHistoryId
      */
     public function __construct(
         $id,
@@ -69,10 +63,10 @@ class ClientData
         string $contactLastname,
         string $contactEmail,
         string $contactPhone,
-        $userId,
+        string $webhookUrl,
+        string $fallbackWebhookUrl,
         ClientOwnerData $clientOwnerData,
-        $registrationHistoryId,
-        ?string $customerRegistrationStatus
+        ?ClientRegistrationHistory $clientRegistrationHistoryModel
     ) {
         $this->id = $id;
         $this->companyName = $companyName;
@@ -88,10 +82,10 @@ class ClientData
         $this->contactLastname = $contactLastname;
         $this->contactEmail = $contactEmail;
         $this->contactPhone = $contactPhone;
-        $this->userId = $userId;
+        $this->webhookUrl = $webhookUrl;
+        $this->fallbackWebhookUrl = $fallbackWebhookUrl;
         $this->clientOwnerData = $clientOwnerData;
-        $this->registrationHistoryId = $registrationHistoryId;
-        $this->customerRegistrationStatus = $customerRegistrationStatus;
+        $this->clientRegistrationHistoryModel = $clientRegistrationHistoryModel;
     }
 
     /**
@@ -167,12 +161,14 @@ class ClientData
         return $this->contactPhone;
     }
 
-    /**
-     * @return string|int
-     */
-    public function getUserId()
+    public function getWebhookUrl(): string
     {
-        return $this->userId;
+        return $this->webhookUrl;
+    }
+
+    public function getFallbackWebhookUrl(): string
+    {
+        return $this->fallbackWebhookUrl;
     }
 
     public function getClientOwnerData(): ClientOwnerData
@@ -180,16 +176,8 @@ class ClientData
         return $this->clientOwnerData;
     }
 
-    /**
-     * @return string|int|null
-     */
-    public function getRegistrationHistoryId()
+    public function getClientRegistrationHistoryModel(): ?ClientRegistrationHistory
     {
-        return $this->registrationHistoryId;
-    }
-
-    public function getCustomerRegistrationHistoryStatus(): ?string
-    {
-        return $this->customerRegistrationStatus;
+        return $this->clientRegistrationHistoryModel;
     }
 }

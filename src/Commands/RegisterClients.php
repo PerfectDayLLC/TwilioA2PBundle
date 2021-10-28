@@ -2,17 +2,16 @@
 
 namespace PerfectDayLlc\TwilioA2PBundle\Commands;
 
+use Illuminate\Console\Command;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
+use PerfectDayLlc\TwilioA2PBundle\Contracts\ClientRegistrationHistory as ClientRegistrationHistoryContract;
+use PerfectDayLlc\TwilioA2PBundle\Entities\RegisterClientsMethodsSignatureEnum;
 use PerfectDayLlc\TwilioA2PBundle\Entities\Status;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\CreateA2PSmsCampaignUseCase;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\SubmitA2PTrustBundle;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\SubmitCustomerProfileBundle;
-use PerfectDayLlc\TwilioA2PBundle\Models\ClientRegistrationHistory;
 use PerfectDayLlc\TwilioA2PBundle\Services\RegisterService;
-use PerfectDayLlc\TwilioA2PBundle\Entities\ClientData;
-use PerfectDayLlc\TwilioA2PBundle\Entities\ClientOwnerData;
-use App\Models\Dealer;
-use Illuminate\Console\Command;
-use Illuminate\Database\Eloquent\Builder;
 
 class RegisterClients extends Command
 {
@@ -20,65 +19,25 @@ class RegisterClients extends Command
 
     protected $description = 'Twilio - Register all companies for the A2P 10DLC US carrier standard compliance';
 
-    public function handle(): int
+    public function handle(RegisterService $service): int
     {
-        $service = new RegisterService(
-            config('services.twilio.sid'),
-            config('services.twilio.token'),
-            config('services.twilio.primary_customer_profile_sid'), // Look for this SID on Twilio's Unotifi User
-            config('services.twilio.customer_profile_policy_sid'),
-            config('services.twilio.a2p_profile_policy_sid'),
-            config('services.twilio.profile_policy_type')
-        );
+        /** @var Model $entityNamespaceModel */
+        $entityNamespaceModel = config('twilioa2pbundle.entity_model');
 
         // Get Unregistered Clients query
-        $unregisteredClients = Dealer::with('instance', 'twilioA2PCustomerRegistrationHistories')
-            ->whereHas('twilioA2PCustomerRegistrationHistories', function (Builder $query) {
-                return $query->whereNull('status')->orWhereIn('status', [
-                    Status::BUNDLES_PENDING_REVIEW,
-                    Status::BUNDLES_IN_REVIEW,
-                    Status::BUNDLES_TWILIO_APPROVED,
-                    Status::BRAND_PENDING,
-                    Status::EXECUTED,
-                ]);
+        $unregisteredClients = $entityNamespaceModel::with('twilioA2PClientRegistrationHistories')
+            ->whereHas('twilioA2PClientRegistrationHistories', function (Builder $query) {
+                return $query->whereNull('status')
+                    ->orWhereIn('status', Status::getOngoingA2PStatuses());
             })
-            ->orWhereDoesntHave('twilioA2PCustomerRegistrationHistories');
+            ->orWhereDoesntHave('twilioA2PClientRegistrationHistories');
 
-        $clientOwnerData = new ClientOwnerData(
-            'Account',
-            'Owner',
-            'account.owner_'.uniqid(microtime(), true).'@unotifi.com'
-        );
-        $clientPhone = '+13606241337';
-
-        foreach ($unregisteredClients->cursor() as $dealer) {
-            /** @var Dealer $dealer */
-            /** @var ClientRegistrationHistory|null $clientRegistrationHistory */
-            $clientRegistrationHistory = $dealer->twilioA2PCustomerRegistrationHistories()->latest()->first();
-
-            $client = new ClientData(
-                $dealer->iddealer,
-                $dealer->name,
-                $dealer->address_line_1,
-                $dealer->city_name,
-                $dealer->state_code,
-                $dealer->zip_code,
-                $dealer->country_code,
-                $dealer->voip_phone_number,
-                $dealer->voip_phone_number_sid,
-                $dealer->instance->generateUnotifiURL(),
-                $clientOwnerData->getFirstname(),
-                $clientOwnerData->getLastname(),
-                $clientOwnerData->getEmail(),
-                $clientPhone,
-                $dealer->iddealer,
-                $clientOwnerData,
-                $clientRegistrationHistory->id ?? null,
-                $clientRegistrationHistory->status ?? null
-            );
+        foreach ($unregisteredClients->cursor() as $entity) {
+            /** @var ClientRegistrationHistoryContract $entity */
+            $client = $entity->getClientData();
 
             // Create and Submit Customer Profile if company has never been registered
-            if (!$client->getCustomerRegistrationHistoryStatus()) {
+            if (! ($client->getClientRegistrationHistoryModel()->status ?? false)) {
                 dispatch(
                     (new SubmitCustomerProfileBundle($service, $client))
                         ->onQueue('submit-customer-profile-bundle')
@@ -87,21 +46,25 @@ class RegisterClients extends Command
                 continue;
             }
 
+            if ($client->getClientRegistrationHistoryModel()->created_at->diffInDays() < 1) {
+                continue;
+            }
+
             /**
              * If `submitCustomerProfileBundle` has been submitted for this client at least a day ago,
              * then Submit A2P Profile Bundle, Create Brand, and Create Messaging Service.
              */
-            if ($clientRegistrationHistory->request_type === 'submitCustomerProfileBundle' &&
-                $clientRegistrationHistory->created_at->diffInDays() >= 1
+            if ($client->getClientRegistrationHistoryModel()->request_type ===
+                RegisterClientsMethodsSignatureEnum::SUBMIT_CUSTOMER_PROFILE_BUNDLE
             ) {
                 // Create Submit A2P Profile Job
                 dispatch(
                     (new SubmitA2PTrustBundle(
                         $service,
                         $client,
-                        $clientRegistrationHistory->bundle_sid,
-                        $SMSCallbackURL = $clientRegistrationHistory->dealer->SMSCallbackURL(),
-                        $SMSCallbackURL,
+                        $client->getClientRegistrationHistoryModel()->bundle_sid ?? '',
+                        $client->getWebhookUrl(),
+                        $client->getFallbackWebhookUrl(),
                         true,
                         true
                     ))
@@ -111,10 +74,17 @@ class RegisterClients extends Command
                 continue;
             }
 
+            $historyTypeInArray = in_array(
+                $client->getClientRegistrationHistoryModel()->request_type,
+                [
+                    RegisterClientsMethodsSignatureEnum::CREATE_A_2_P_BRAND,
+                    RegisterClientsMethodsSignatureEnum::CREATE_MESSAGING_SERVICE,
+                    RegisterClientsMethodsSignatureEnum::ADD_PHONE_NUMBER_TO_MESSAGING_SERVICE,
+                ]
+            );
+
             // If Create A2P SMS Campaign use case
-            if (in_array($clientRegistrationHistory->request_type, ['createA2PBrand', 'createMessagingService', 'addPhoneNumberToMessagingService']) &&
-                $clientRegistrationHistory->created_at->diffInDays() >= 1
-            ) {
+            if ($historyTypeInArray) {
                 //Create A2p Sms Campaign UseCase Job
                 dispatch(
                     (new CreateA2PSmsCampaignUseCase($service, $client))

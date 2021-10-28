@@ -56,7 +56,7 @@ class RegisterService
         } catch (ConfigurationException $exception) {
             $this->saveNewClientRegistrationHistory(
                 ClientRegistrationHistoryResponseData::createFromArray([
-                    'dealer_id' => 0, // TODO: This must be the dealer_id UUID
+                    'entity_id' => 0,
                     'request_type' => __FUNCTION__,
                     'status' => Status::EXCEPTION_ERROR,
                     'response' => $this->exceptionToArray($exception),
@@ -168,7 +168,7 @@ class RegisterService
 
             $this->saveNewClientRegistrationHistory(
                 ClientRegistrationHistoryResponseData::createFromArray([
-                    'dealer_id' => $client->getId(),
+                    'entity_id' => $client->getId(),
                     'request_type' => __FUNCTION__,
                     'bundle_sid' => $customerProfilesInstance->sid,
                     'object_sid' => $customerProfilesInstance->sid,
@@ -181,7 +181,7 @@ class RegisterService
         } catch (TwilioException $exception) {
             $this->saveNewClientRegistrationHistory(
                 ClientRegistrationHistoryResponseData::createFromArray([
-                    'dealer_id' => $client->getId(),
+                    'entity_id' => $client->getId(),
                     'request_type' => __FUNCTION__,
                     'status' => Status::EXCEPTION_ERROR,
                     'response' => $this->exceptionToArray($exception),
@@ -198,7 +198,11 @@ class RegisterService
      */
     private function createEndUserCustomerProfileInfo(ClientData $client, string $profilePolicyType): EndUserInstance
     {
-        // Delay before requests
+        /**
+         * Delay before requests
+         *
+         * @link https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api
+         */
         sleep($this->requestDelay);
 
         try {
@@ -218,7 +222,7 @@ class RegisterService
 
             $this->saveNewClientRegistrationHistory(
                 ClientRegistrationHistoryResponseData::createFromArray([
-                    'dealer_id' => $client->getId(),
+                    'entity_id' => $client->getId(),
                     'request_type' => __FUNCTION__,
                     'object_sid' => $endUserInstance->sid,
                     'status' => Status::EXECUTED,
@@ -230,7 +234,7 @@ class RegisterService
         } catch (TwilioException $exception) {
             $this->saveNewClientRegistrationHistory(
                 ClientRegistrationHistoryResponseData::createFromArray([
-                    'dealer_id' => $client->getId(),
+                    'entity_id' => $client->getId(),
                     'request_type' => __FUNCTION__,
                     'status' => Status::EXCEPTION_ERROR,
                     'response' => $this->exceptionToArray($exception),
@@ -247,7 +251,11 @@ class RegisterService
      */
     private function createCustomerProfileAddress(ClientData $client): AddressInstance
     {
-        // Delay before requests
+        /**
+         * Delay before requests
+         *
+         * @link https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api
+         */
         sleep($this->requestDelay);
 
         try {
@@ -264,7 +272,7 @@ class RegisterService
             //Insert request to history log
             $this->saveNewClientRegistrationHistory(
                 ClientRegistrationHistoryResponseData::createFromArray([
-                    'dealer_id' => $client->getId(),
+                    'entity_id' => $client->getId(),
                     'request_type' => __FUNCTION__,
                     'object_sid' => $addressInstance->sid,
                     'status' => Status::EXECUTED,
@@ -276,7 +284,7 @@ class RegisterService
         } catch (TwilioException $exception) {
             $this->saveNewClientRegistrationHistory(
                 ClientRegistrationHistoryResponseData::createFromArray([
-                    'dealer_id' => $client->getId(),
+                    'entity_id' => $client->getId(),
                     'request_type' => __FUNCTION__,
                     'status' => Status::EXCEPTION_ERROR,
                     'response' => $this->exceptionToArray($exception),
@@ -296,7 +304,11 @@ class RegisterService
         string $documentType,
         array $attributes
     ): SupportingDocumentInstance {
-        // Delay before requests
+        /**
+         * Delay before requests
+         *
+         * @link https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api
+         */
         sleep($this->requestDelay);
 
         try {
@@ -336,7 +348,11 @@ class RegisterService
      */
     private function attachObjectSidToCustomerProfile(string $customer_profile_bundle_sid, string $object_sid): void
     {
-        // Delay before requests
+        /**
+         * Delay before requests
+         *
+         * @link https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api
+         */
         sleep($this->requestDelay);
 
         try {
@@ -377,7 +393,11 @@ class RegisterService
         string $customerProfileBundleSid,
         string $policySid
     ): CustomerProfilesEvaluationsInstance {
-        // Delay before requests
+        /**
+         * Delay before requests
+         *
+         * @link https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api
+         */
         sleep($this->requestDelay);
 
         try {
@@ -418,7 +438,11 @@ class RegisterService
      */
     private function submitCustomerProfileBundle(string $customerProfileBundleSid): CustomerProfilesInstance
     {
-        // Delay before requests
+        /**
+         * Delay before requests
+         *
+         * @link https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api
+         */
         sleep($this->requestDelay);
 
         try {
@@ -456,7 +480,11 @@ class RegisterService
      */
     private function createEmptyA2PTrustBundle(ClientData $client, string $policySid): TrustProductsInstance
     {
-        // Delay before requests
+        /**
+         * Delay before requests
+         *
+         * @link https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api
+         */
         sleep($this->requestDelay);
 
         try {
@@ -469,7 +497,7 @@ class RegisterService
 
             $this->saveNewClientRegistrationHistory(
                 ClientRegistrationHistoryResponseData::createFromArray([
-                    'dealer_id' => $client->getId(),
+                    'entity_id' => $client->getId(),
                     'request_type' => __FUNCTION__,
                     'bundle_sid' => $trustProductsInstance->sid,
                     'object_sid' => $trustProductsInstance->sid,
@@ -482,7 +510,7 @@ class RegisterService
         } catch (TwilioException $exception) {
             $this->saveNewClientRegistrationHistory(
                 ClientRegistrationHistoryResponseData::createFromArray([
-                    'dealer_id' => $client->getId(),
+                    'entity_id' => $client->getId(),
                     'request_type' => __FUNCTION__,
                     'status' => Status::EXCEPTION_ERROR,
                     'response' => $this->exceptionToArray($exception),
@@ -501,7 +529,11 @@ class RegisterService
         string $trustBundleSid,
         string $customerProfileSid
     ): void {
-        // Delay before requests
+        /**
+         * Delay before requests
+         *
+         * @link https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api
+         */
         sleep($this->requestDelay);
 
         try {
@@ -542,7 +574,11 @@ class RegisterService
         string $trustBundleSid,
         string $policy_sid
     ): TrustProductsEvaluationsInstance {
-        // Delay before requests
+        /**
+         * Delay before requests
+         *
+         * @link https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api
+         */
         sleep($this->requestDelay);
 
         try {
@@ -583,7 +619,11 @@ class RegisterService
      */
     private function submitA2PProfileBundle(string $trustBundleSid): TrustProductsInstance
     {
-        // Delay before requests
+        /**
+         * Delay before requests
+         *
+         * @link https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api
+         */
         sleep($this->requestDelay);
 
         try {
@@ -627,7 +667,11 @@ class RegisterService
         string $customerProfileBundleSid,
         string $profilePolicyType = ''
     ): BrandRegistrationInstance {
-        // Delay before requests
+        /**
+         * Delay before requests
+         *
+         * @link https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api
+         */
         sleep($this->requestDelay);
 
         try {
@@ -641,7 +685,7 @@ class RegisterService
             //Insert request to history log
             $this->saveNewClientRegistrationHistory(
                 ClientRegistrationHistoryResponseData::createFromArray([
-                    'dealer_id' => $client->getId(),
+                    'entity_id' => $client->getId(),
                     'request_type' => __FUNCTION__,
                     'bundle_sid' => $brandRegistrationInstance->a2PProfileBundleSid,
                     'object_sid' => $brandRegistrationInstance->sid,
@@ -654,7 +698,7 @@ class RegisterService
         } catch (TwilioException $exception) {
             $this->saveNewClientRegistrationHistory(
                 ClientRegistrationHistoryResponseData::createFromArray([
-                    'dealer_id' => $client->getId(),
+                    'entity_id' => $client->getId(),
                     'request_type' => __FUNCTION__,
                     'bundle_sid' => $a2PProfileBundleSid,
                     'object_sid' => $customerProfileBundleSid,
@@ -676,7 +720,11 @@ class RegisterService
         string $webhookUrl,
         string $fallbackWebhookUrl
     ): ServiceInstance {
-        // Delay before requests
+        /**
+         * Delay before requests
+         *
+         * @link https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api
+         */
         sleep($this->requestDelay);
 
         try {
@@ -691,7 +739,7 @@ class RegisterService
 
             $this->saveNewClientRegistrationHistory(
                 ClientRegistrationHistoryResponseData::createFromArray([
-                    'dealer_id' => $client->getId(),
+                    'entity_id' => $client->getId(),
                     'request_type' => __FUNCTION__,
                     'object_sid' => $serviceInstance->sid,
                     'status' => Status::EXECUTED,
@@ -703,7 +751,7 @@ class RegisterService
         } catch (TwilioException $exception) {
             $this->saveNewClientRegistrationHistory(
                 ClientRegistrationHistoryResponseData::createFromArray([
-                    'dealer_id' => $client->getId(),
+                    'entity_id' => $client->getId(),
                     'request_type' => __FUNCTION__,
                     'status' => Status::EXCEPTION_ERROR,
                     'response' => $this->exceptionToArray($exception),
@@ -722,7 +770,11 @@ class RegisterService
         ClientData $client,
         string $messageServiceSid
     ): PhoneNumberInstance {
-        // Delay before requests
+        /**
+         * Delay before requests
+         *
+         * @link https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api
+         */
         sleep($this->requestDelay);
 
         try {
@@ -732,7 +784,7 @@ class RegisterService
 
             $this->saveNewClientRegistrationHistory(
                 ClientRegistrationHistoryResponseData::createFromArray([
-                    'dealer_id' => $client->getId(),
+                    'entity_id' => $client->getId(),
                     'request_type' => __FUNCTION__,
                     'object_sid' => $phoneNumberInstance->sid,
                     'status' => Status::EXECUTED,
@@ -744,7 +796,7 @@ class RegisterService
         } catch (TwilioException $exception) {
             $this->saveNewClientRegistrationHistory(
                 ClientRegistrationHistoryResponseData::createFromArray([
-                    'dealer_id' => $client->getId(),
+                    'entity_id' => $client->getId(),
                     'request_type' => __FUNCTION__,
                     'status' => Status::EXCEPTION_ERROR,
                     'response' => $this->exceptionToArray($exception),
@@ -765,7 +817,11 @@ class RegisterService
         string $messagingServiceSid,
         string $profilePolicyType = ''
     ): UsAppToPersonInstance {
-        // Delay before requests
+        /**
+         * Delay before requests
+         *
+         * @link https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api
+         */
         sleep($this->requestDelay);
 
         try {
@@ -782,7 +838,7 @@ class RegisterService
 
             $this->saveNewClientRegistrationHistory(
                 ClientRegistrationHistoryResponseData::createFromArray([
-                    'dealer_id' => $client->getId(),
+                    'entity_id' => $client->getId(),
                     'request_type' => __FUNCTION__,
                     'bundle_sid' => $usAppToPersonInstance->sid,
                     'object_sid' => $usAppToPersonInstance->sid,
@@ -795,7 +851,7 @@ class RegisterService
         } catch (TwilioException $exception) {
             $this->saveNewClientRegistrationHistory(
                 ClientRegistrationHistoryResponseData::createFromArray([
-                    'dealer_id' => $client->getId(),
+                    'entity_id' => $client->getId(),
                     'request_type' => __FUNCTION__,
                     'status' => Status::EXCEPTION_ERROR,
                     'response' => $this->exceptionToArray($exception),
@@ -812,7 +868,11 @@ class RegisterService
      */
     public function fetchCustomerProfilePolicy(string $policySid): PoliciesInstance
     {
-        // Delay before requests
+        /**
+         * Delay before requests
+         *
+         * @link https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api
+         */
         sleep($this->requestDelay);
 
         try {
@@ -903,7 +963,7 @@ class RegisterService
     {
         $history = new ClientRegistrationHistory;
 
-        $history->dealer_id = $historyData->getEntityId();
+        $history->entity_id = $historyData->getEntityId();
         $history->request_type = $historyData->getRequestType();
         $history->error = $historyData->getError();
         $history->bundle_sid = $historyData->getBundleSid();

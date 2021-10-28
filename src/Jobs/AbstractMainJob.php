@@ -14,9 +14,9 @@ abstract class AbstractMainJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    protected RegisterService $registerService;
+    public RegisterService $registerService;
 
-    protected ClientData $client;
+    public ClientData $client;
 
     public function __construct(RegisterService $registerService, ClientData $client)
     {

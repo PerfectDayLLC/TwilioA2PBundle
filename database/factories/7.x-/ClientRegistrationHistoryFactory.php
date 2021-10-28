@@ -4,8 +4,9 @@
 
 use Faker\Generator as Faker;
 use PerfectDayLlc\TwilioA2PBundle\Entities\Status;
+use PerfectDayLlc\TwilioA2PBundle\Models\ClientRegistrationHistory;
 
-$factory->define(config('twilioa2pbundle.client_registration_history_model'), function (Faker $faker) {
+$factory->define(ClientRegistrationHistory::class, function (Faker $faker) {
     return [
         'entity_id' => factory(config('twilioa2pbundle.entity_model')),
         'request_type' => $faker->word(),

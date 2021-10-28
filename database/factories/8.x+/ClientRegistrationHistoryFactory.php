@@ -4,26 +4,14 @@ namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Foundation\Testing\WithFaker;
-use Illuminate\Support\Collection;
 use PerfectDayLlc\TwilioA2PBundle\Entities\Status;
+use PerfectDayLlc\TwilioA2PBundle\Models\ClientRegistrationHistory;
 
 class ClientRegistrationHistoryFactory extends Factory
 {
     use WithFaker;
 
-    public function __construct(
-        $count = null,
-        ?Collection $states = null,
-        ?Collection $has = null,
-        ?Collection $for = null,
-        ?Collection $afterMaking = null,
-        ?Collection $afterCreating = null,
-        $connection = null)
-    {
-        parent::__construct($count, $states, $has, $for, $afterMaking, $afterCreating, $connection);
-
-        $this->model = config('twilioa2pbundle.client_registration_history_model');
-    }
+    protected $model = ClientRegistrationHistory::class;
 
     public function definition(): array
     {

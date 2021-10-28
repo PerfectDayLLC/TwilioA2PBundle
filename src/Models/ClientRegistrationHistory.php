@@ -4,9 +4,40 @@ namespace PerfectDayLlc\TwilioA2PBundle\Models;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use PerfectDayLlc\TwilioA2PBundle\Entities\Status;
 
+/**
+ * @property int|string $id
+ * @property int|string $entity_id
+ * @property string|null $request_type
+ * @property bool $error
+ * @property string|null $bundle_sid
+ * @property string|null $object_sid
+ * @property string|null $status
+ * @property array $response
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @property-read \PerfectDayLlc\TwilioA2PBundle\Contracts\ClientRegistrationHistory|null $entity
+ * @method static \Illuminate\Database\Eloquent\Builder|static allowedStatuses($types = [])
+ * @method static \Illuminate\Database\Query\Builder|static onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder|static query()
+ * @method static \Illuminate\Database\Eloquent\Builder|static whereBundleSid($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|static whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|static whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|static whereEntityId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|static whereError($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|static whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|static whereObjectSid($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|static whereRequestType($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|static whereResponse($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|static whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|static whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Query\Builder|static withTrashed()
+ * @method static \Illuminate\Database\Query\Builder|static withoutTrashed()
+ */
 class ClientRegistrationHistory extends Model
 {
     use SoftDeletes;
@@ -26,6 +57,14 @@ class ClientRegistrationHistory extends Model
     protected $casts = [
         'response' => 'array',
     ];
+
+    public function entity(): BelongsTo
+    {
+        /** @var string $entityModel */
+        $entityModel = config('twilioa2pbundle.entity_model');
+
+        return $this->belongsTo($entityModel, (new $entityModel)->getKeyName());
+    }
 
     public function scopeAllowedStatuses(Builder $query, array $types = []): Builder
     {
@@ -48,12 +87,13 @@ class ClientRegistrationHistory extends Model
      */
     public static function getBundleSidForAllowedStatuses(string $requestType, $entityId = null): string
     {
-        return optional(self::allowedStatuses()
+        /** @var static $self */
+        $self = static::allowedStatuses()
             ->whereRequestType($requestType)
             ->when($entityId, fn (Builder $query) => $query->where('entity_id', $entityId))
             ->latest()
-            ->first())
-            ->bundle_sid
-        ?? '';
+            ->first();
+
+        return $self->bundle_sid ?? '';
     }
 }

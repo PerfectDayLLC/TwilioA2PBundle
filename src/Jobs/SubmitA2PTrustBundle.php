@@ -9,24 +9,24 @@ use Twilio\Exceptions\TwilioException;
 
 class SubmitA2PTrustBundle extends AbstractMainJob
 {
-    private bool $createA2PBrand;
+    public bool $createA2PBrand;
 
-    private bool $createMessagingService;
+    public bool $createMessagingService;
 
-    private string $customerProfileBundleSid;
+    public string $customerProfileBundleSid;
 
-    private string $fallbackWebhookUrl;
+    public string $fallbackWebhookUrl;
 
-    private string $webhookUrl;
+    public string $webhookUrl;
 
     public function __construct(
         RegisterService $registerService,
-        ClientData $client,
-        string $customerProfileBundleSid = '',
-        string $webhookUrl = '',
-        string $fallbackWebhookUrl = '',
-        bool $createA2PBrand = false,
-        bool $createMessagingService = false
+        ClientData      $client,
+        string          $customerProfileBundleSid = '',
+        string          $webhookUrl = '',
+        string          $fallbackWebhookUrl = '',
+        bool            $createA2PBrand = false,
+        bool            $createMessagingService = false
     ) {
         parent::__construct($registerService, $client);
 

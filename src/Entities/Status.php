@@ -29,4 +29,15 @@ class Status
     {
         return (new ReflectionClass(static::class))->getConstants();
     }
+
+    public static function getOngoingA2PStatuses(): array
+    {
+        return [
+            static::BUNDLES_PENDING_REVIEW,
+            static::BUNDLES_IN_REVIEW,
+            static::BUNDLES_TWILIO_APPROVED,
+            static::BRAND_PENDING,
+            static::EXECUTED,
+        ];
+    }
 }

@@ -5,16 +5,26 @@ namespace PerfectDayLlc\TwilioA2PBundle\Tests\Unit;
 use PerfectDayLlc\TwilioA2PBundle\Entities\ClientData;
 use PerfectDayLlc\TwilioA2PBundle\Entities\ClientOwnerData;
 use PerfectDayLlc\TwilioA2PBundle\Entities\ClientRegistrationHistoryResponseData;
+use PerfectDayLlc\TwilioA2PBundle\Entities\RegisterClientsMethodsSignatureEnum;
 use PerfectDayLlc\TwilioA2PBundle\Entities\Status;
+use PerfectDayLlc\TwilioA2PBundle\Services\RegisterService;
 use PerfectDayLlc\TwilioA2PBundle\Tests\Fake\Models\ClientRegistrationHistory;
 use PerfectDayLlc\TwilioA2PBundle\Tests\TestCase;
+use ReflectionClass;
 
 class EntitiesTest extends TestCase
 {
-    public function test_client_data(): void
+    /**
+     * @testWith [true]
+     *           [false]
+     */
+    public function test_client_data(bool $withClientRegistrationHistoryModel): void
     {
-        /** @var ClientRegistrationHistory $clientRegistrationHistory */
-        $clientRegistrationHistory = ClientRegistrationHistory::factory()->create();
+        $clientRegistrationHistory = null;
+        if ($withClientRegistrationHistoryModel) {
+            /** @var ClientRegistrationHistory $clientRegistrationHistory */
+            $clientRegistrationHistory = ClientRegistrationHistory::factory()->create();
+        }
 
         $clientData = new ClientData(
             $id = ($this->faker()->randomDigit() + 1),
@@ -31,14 +41,14 @@ class EntitiesTest extends TestCase
             $contactSurname = 'Doe',
             $contactEmail = 'johndoe@gmail.com',
             $contactPhone = '+12233445566',
-            $id,
+            $webhookUrl = 'https://webhook.url/123/abc',
+            $fallbackWebhookUrl = 'https://fallbackwebhook.url/abc/123',
             $clientOwnerData = new ClientOwnerData(
                 $contactName,
                 $contactSurname,
                 $contactEmail
             ),
-            $clientRegistrationHistory->id,
-            $clientRegistrationHistory->status
+            $clientRegistrationHistory,
         );
 
         $this->assertSame($id, $clientData->getId());
@@ -55,14 +65,26 @@ class EntitiesTest extends TestCase
         $this->assertSame($contactSurname, $clientData->getContactLastname());
         $this->assertSame($contactEmail, $clientData->getContactEmail());
         $this->assertSame($contactPhone, $clientData->getContactPhone());
-        $this->assertSame($id, $clientData->getUserId());
 
-        $this->assertSame($clientOwnerData->getFirstname(), $contactName);
-        $this->assertSame($clientOwnerData->getLastname(), $contactSurname);
-        $this->assertSame($clientOwnerData->getEmail(), $contactEmail);
+        $this->assertSame($webhookUrl, $clientData->getWebhookUrl());
+        $this->assertSame($fallbackWebhookUrl, $clientData->getFallbackWebhookUrl());
 
-        $this->assertSame($clientRegistrationHistory->id, $clientData->getRegistrationHistoryId());
-        $this->assertSame($clientRegistrationHistory->status, $clientData->getCustomerRegistrationHistoryStatus());
+        $this->assertSame($clientOwnerData, $clientData->getClientOwnerData());
+
+        $this->assertSame($clientRegistrationHistory, $clientData->getClientRegistrationHistoryModel());
+    }
+
+    public function test_client_data_owner(): void
+    {
+        $clientOwnerData = new ClientOwnerData(
+            $contactName = 'John',
+            $contactSurname = 'Doe',
+            $contactEmail = 'johndoe@gmail.com',
+        );
+
+        $this->assertSame($contactName, $clientOwnerData->getFirstname());
+        $this->assertSame($contactSurname, $clientOwnerData->getLastname());
+        $this->assertSame($contactEmail, $clientOwnerData->getEmail());
     }
 
     /**
@@ -130,6 +152,32 @@ class EntitiesTest extends TestCase
 
         $this->assertEquals('exception-error', Status::EXCEPTION_ERROR);
         $this->assertEquals('executed', Status::EXECUTED);
+    }
+
+    public function test_expected_methods_exists_on_register_service(): void
+    {
+        foreach ((new ReflectionClass(RegisterClientsMethodsSignatureEnum::class))->getConstants() as $method) {
+            $this->assertTrue(
+                (new ReflectionClass(RegisterService::class))->hasMethod($method),
+                "The method '$method' was not found"
+            );
+        }
+    }
+
+    public function test_expected_constant_is_returned(): void
+    {
+        $this->assertEmpty(
+            array_diff(
+                Status::getOngoingA2PStatuses(),
+                [
+                    Status::BUNDLES_PENDING_REVIEW,
+                    Status::BUNDLES_IN_REVIEW,
+                    Status::BUNDLES_TWILIO_APPROVED,
+                    Status::BRAND_PENDING,
+                    Status::EXECUTED,
+                ]
+            )
+        );
     }
 
     public function arrayDataSetterProvider(): array

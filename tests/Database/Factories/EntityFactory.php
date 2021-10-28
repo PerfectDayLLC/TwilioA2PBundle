@@ -14,6 +14,22 @@ class EntityFactory extends Factory
 
     public function definition(): array
     {
-        return [];
+        return [
+            'company_name' => $this->faker()->company(),
+            'address' => $this->faker()->streetAddress(),
+            'city' => $this->faker()->city(),
+            'state' => $this->faker()->stateAbbr(),
+            'zip' => $this->faker()->postcode(),
+            'country' => 'US',
+            'phone_number' => $this->faker()->e164PhoneNumber(),
+            'twilio_phone_number_sid' => $this->faker()->regexify('PN[A-Z0-9]{16}'),
+            'website' => $this->faker()->url(),
+            'contact_first_name' => $this->faker()->firstName(),
+            'contact_last_name' => $this->faker()->lastName(),
+            'contact_email' => $this->faker()->email(),
+            'contact_phone' => $this->faker()->e164PhoneNumber(),
+            'webhook_url' => $this->faker()->url(),
+            'fallback_webhook_url' => $this->faker()->url(),
+        ];
     }
 }

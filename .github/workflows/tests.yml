@@ -1,0 +1,49 @@
+name: tests
+
+on: [ push, pull_request ]
+
+jobs:
+  tests:
+    runs-on: ubuntu-20.04
+
+    strategy:
+      fail-fast: true
+      matrix:
+        php: [ 7.4, 8.0 ]
+        laravel: [ ^5.8, ^6.0, ^7.0, ^8.0 ]
+        exclude:
+          - php: 8.0
+            laravel: ^5.8
+
+    services:
+      mysql:
+        image: mysql:5.7
+        env:
+          MYSQL_DATABASE: app
+          MYSQL_HOST: 127.0.0.1
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    name: PHP ${{ matrix.php }} - Laravel ${{ matrix.laravel }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, bcmath, soap, intl, gd, exif, iconv, imagick
+          tools: composer:v2
+          coverage: none
+
+      - name: Install dependencies
+        run: |
+          composer require "illuminate/contracts=${{ matrix.laravel }}" --no-update
+          composer update --prefer-dist --no-interaction --no-progress
+
+      - name: Execute tests
+        run: vendor/bin/phpunit --verbose
