@@ -21,7 +21,7 @@
         <server name="APP_ENV" value="testing"/>
         <server name="APP_DEBUG" value="true"/>
         <server name="APP_KEY" value="AckfSECXIvnK5r28GVIWUAxmbBSjTsmF"/>
-        <server name="DB_HOST" value="mysql"/>
+        <env name="DB_HOST" value="mysql"/>
         <server name="DB_USERNAME" value="root"/>
         <server name="PERFECTDAYLLC_TWILIO_A2P_BUNDLE_ENTITY_MODEL" value="\PerfectDayLlc\TwilioA2PBundle\Tests\Fake\Models\Entity"/>
     </php>

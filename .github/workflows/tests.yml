@@ -1,6 +1,6 @@
 name: tests
 
-on: [ push, pull_request ]
+on: [push, pull_request]
 
 jobs:
   tests:
@@ -9,11 +9,11 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        php: [ 7.4, 8.0 ]
-        laravel: [ ^5.8, ^6.0, ^7.0, ^8.0 ]
+        php: [7.4, 8.0]
+        laravel: [5.8, 6.0, 7.0, 8.0]
         exclude:
           - php: 8.0
-            laravel: ^5.8
+            laravel: 5.8
 
     services:
       mysql:
@@ -41,7 +41,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          composer require "illuminate/contracts=${{ matrix.laravel }}" --no-update
+          composer require "illuminate/contracts=^${{ matrix.laravel }}" --no-update
           composer update --prefer-dist --no-interaction --no-progress
 
       - name: Execute tests
