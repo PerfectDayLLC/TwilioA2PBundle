@@ -7,11 +7,12 @@ use Illuminate\Foundation\Testing\WithFaker;
 use Orchestra\Testbench\TestCase as BaseTestCase;
 use PerfectDayLlc\TwilioA2PBundle\Models\ClientRegistrationHistory;
 use PerfectDayLlc\TwilioA2PBundle\Tests\Fake\Models\ClientRegistrationHistory as ClientRegistrationHistoryFake;
+use PerfectDayLlc\TwilioA2PBundle\Tests\Traits\InteractsWithTime;
 use PerfectDayLlc\TwilioA2PBundle\TwilioA2PBundleServiceProvider;
 
 class TestCase extends BaseTestCase
 {
-    use RefreshDatabase, WithFaker;
+    use InteractsWithTime, RefreshDatabase, WithFaker;
 
     protected function getPackageProviders($app): array
     {

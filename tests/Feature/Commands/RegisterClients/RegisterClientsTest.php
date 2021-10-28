@@ -160,7 +160,7 @@ class RegisterClientsTest extends TestCase
     {
         return collect(Status::getConstants())
             ->diff(Status::getOngoingA2PStatuses())
-            ->mapWithKeys(fn (string $status, string $key) => [Str::headline($key) => [$status]])
+            ->mapWithKeys(fn (string $status, string $key) => [str_headline($key) => [$status]])
             ->toArray();
     }
 
