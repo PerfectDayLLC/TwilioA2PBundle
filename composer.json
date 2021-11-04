@@ -1,0 +1,54 @@
+{
+    "name": "perfectdayllc/twilio-a2p-bundle",
+    "description": "Usage for Twilio A2P 10-DLC Integrations",
+    "license": "MIT",
+    "type": "library",
+    "authors": [
+        {
+            "name": "Matias Hernan Lauriti",
+            "email": "matias.lauriti@rockstarcoders.com"
+        }
+    ],
+    "require": {
+        "php": "^7.3|^8.0",
+        "illuminate/bus": "^5.8|^6|^7|^8",
+        "illuminate/console": "^5.8|^6|^7|^8",
+        "illuminate/contracts": "^5.8|^6|^7|^8",
+        "illuminate/database": "^5.8|^6|^7|^8",
+        "illuminate/queue": "^5.8|^6|^7|^8",
+        "illuminate/support": "^5.8|^6|^7|^8",
+        "twilio/sdk": "^6.15"
+    },
+    "require-dev": {
+        "doctrine/dbal": "^2.13.3|^3.1.2",
+        "laravel/legacy-factories": "^1.1",
+        "mockery/mockery": "^1.4.4",
+        "orchestra/testbench": "^3.8|^4.0|^5.0|^6.0",
+        "phpunit/phpunit": "^8.0|^9.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "PerfectDayLlc\\TwilioA2PBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "files": [
+            "tests/helpers.php"
+        ],
+        "psr-4": {
+            "PerfectDayLlc\\TwilioA2PBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "PerfectDayLlc\\TwilioA2PBundle\\TwilioA2PBundleServiceProvider"
+            ]
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}

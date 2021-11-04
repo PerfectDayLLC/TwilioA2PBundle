@@ -1,0 +1,36 @@
+version: '3.9'
+
+services:
+    app:
+        build:
+            context: ./docker
+            args:
+                WWWUSER: ${WWWUSER:-1000}
+                WWWGROUP: ${WWWGROUP:-1000}
+                PHP_VERSION: ${PHP_VERSION:-7.4}
+                XDEBUG_VERSION: ${XDEBUG_VERSION:--3.0.4}
+        working_dir: /var/www/html
+        volumes:
+            - ${WORKING_DIR:-./}:/var/www/html
+            - ./docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini
+            - ./docker/php/xdebug.ini:/usr/local/etc/php/conf.d/xdebug.ini
+        environment:
+            PHP_IDE_CONFIG: "serverName=localhost"
+        depends_on:
+            - mysql
+
+    mysql:
+        image: mysql:5.7
+        environment:
+            MYSQL_DATABASE: forge
+            MYSQL_ALLOW_EMPTY_PASSWORD: yes
+        volumes:
+            - package-development:/var/lib/mysql
+        ports:
+            - ${DB_PORT:-3306}:3306
+        healthcheck:
+            test: [ "CMD", "mysqladmin", "ping" ]
+
+volumes:
+    package-development:
+        driver: local
