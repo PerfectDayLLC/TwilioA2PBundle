@@ -269,7 +269,6 @@ class RegisterService
                     $client->getCountry()
                 );
 
-            //Insert request to history log
             $this->saveNewClientRegistrationHistory(
                 ClientRegistrationHistoryResponseData::createFromArray([
                     'entity_id' => $client->getId(),
@@ -346,7 +345,7 @@ class RegisterService
     /**
      * @throws TwilioException
      */
-    private function attachObjectSidToCustomerProfile(string $customer_profile_bundle_sid, string $object_sid): void
+    private function attachObjectSidToCustomerProfile(string $customerProfileBundleSid, string $objectSid): void
     {
         /**
          * Delay before requests
@@ -357,14 +356,14 @@ class RegisterService
 
         try {
             $customerProfilesEntityAssignmentsInstance = $this->client->trusthub->v1
-                ->customerProfiles($customer_profile_bundle_sid)
+                ->customerProfiles($customerProfileBundleSid)
                 ->customerProfilesEntityAssignments
-                ->create($object_sid);
+                ->create($objectSid);
 
             $this->saveNewClientRegistrationHistory(
                 ClientRegistrationHistoryResponseData::createFromArray([
                     'request_type' => __FUNCTION__,
-                    'bundle_sid' => $customer_profile_bundle_sid,
+                    'bundle_sid' => $customerProfileBundleSid,
                     'object_sid' => $customerProfilesEntityAssignmentsInstance->sid,
                     'status' => Status::EXECUTED,
                     'response' => $customerProfilesEntityAssignmentsInstance->toArray(),
@@ -374,8 +373,8 @@ class RegisterService
             $this->saveNewClientRegistrationHistory(
                 ClientRegistrationHistoryResponseData::createFromArray([
                     'request_type' => __FUNCTION__,
-                    'bundle_sid' => $customer_profile_bundle_sid,
-                    'object_sid' => $object_sid,
+                    'bundle_sid' => $customerProfileBundleSid,
+                    'object_sid' => $objectSid,
                     'status' => Status::EXCEPTION_ERROR,
                     'response' => $this->exceptionToArray($exception),
                     'error' => true,
@@ -572,7 +571,7 @@ class RegisterService
      */
     private function evaluateA2PProfileBundle(
         string $trustBundleSid,
-        string $policy_sid
+        string $policySid
     ): TrustProductsEvaluationsInstance {
         /**
          * Delay before requests
@@ -584,7 +583,7 @@ class RegisterService
         try {
             $trustProductsEvaluationsInstance = $this->client->trusthub->v1->trustProducts($trustBundleSid)
                 ->trustProductsEvaluations
-                ->create($policy_sid);
+                ->create($policySid);
 
             //Insert request to history log
             $this->saveNewClientRegistrationHistory(
@@ -603,7 +602,7 @@ class RegisterService
                 ClientRegistrationHistoryResponseData::createFromArray([
                     'request_type' => __FUNCTION__,
                     'bundle_sid' => $trustBundleSid,
-                    'object_sid' => $policy_sid,
+                    'object_sid' => $policySid,
                     'status' => Status::EXCEPTION_ERROR,
                     'response' => $this->exceptionToArray($exception),
                     'error' => true,
