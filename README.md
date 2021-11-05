@@ -18,4 +18,5 @@ information already set.
 * `twilioA2PClientRegistrationHistories` is the relation's name we will use to go back and forth with the history data.
 
 You will also need to edit the `config\perfectdayllc\twilioa2pbundle.php` config file:
-* `entity_model` will be used to point to your main System's entity holder. For example: `\App\Models\Company::class`.
+* `entity_model` will be used to point to your main System's entity holder (use namespace).
+For example: `App\Models\Company`.
