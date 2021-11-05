@@ -6,9 +6,7 @@ Initial Usage For 10-DLC Integrations
 To be able to have the needed files for this package to work, please run the following command
 `php artisan vendor:publish --tag={TAGS}` (you can use multiple values like
 [this example](https://laravel.com/docs/8.x/artisan#option-arrays)) and replace `{TAGS}` with the following tags:
-* `twilio-a2p-bundle-migrations` to publish the migration files (do not alter any).
 * `twilio-a2p-bundle-config` to publish the config file.
-* `twilio-a2p-bundle-models` to get the needed models
 * `twilio-a2p-bundle-factories` (optional) to get the `ClientRegistrationHistoryFactory` if you need to use it in your
 own tests.
 
