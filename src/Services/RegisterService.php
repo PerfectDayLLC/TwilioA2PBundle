@@ -28,29 +28,24 @@ class RegisterService
 
     protected int $requestDelay;
 
+    /**
+     * @link https://www.twilio.com/docs/trust-hub/trusthub-rest-api/console-create-a-primary-customer-profile
+     */
     protected string $primaryCustomerProfileSid;
 
     protected string $policySid;
-
-    protected string $a2PProfilePolicySid;
-
-    protected string $profilePolicyType;
 
     public function __construct(
         string $accountSid,
         string $token,
         string $primaryCustomerProfileSid,
-        string $customerProfilePolicySid,
-        string $a2PProfilePolicySid,
-        string $profilePolicyType
+        string $customerProfilePolicySid
     ) {
         try {
             $this->client = new Client($accountSid, $token);
 
             $this->primaryCustomerProfileSid = $primaryCustomerProfileSid;
             $this->policySid = $customerProfilePolicySid;
-            $this->a2PProfilePolicySid = $a2PProfilePolicySid;
-            $this->profilePolicyType = $profilePolicyType;
 
             $this->requestDelay = 1;
         } catch (ConfigurationException $exception) {
@@ -74,7 +69,7 @@ class RegisterService
         $customerProfilesInstance = $this->createEmptyCustomerProfileBundle($client, $this->policySid);
 
         // Create end-user object of type: customer_profile_information
-        $endUserInstance = $this->createEndUserCustomerProfileInfo($client, $this->profilePolicyType);
+        $endUserInstance = $this->createEndUserCustomerProfileInfo($client);
 
         // Create supporting document: customer_profile_address, then create customer_profile_address document
         $addressInstance = $this->createCustomerProfileAddress($client);
@@ -111,13 +106,13 @@ class RegisterService
      */
     public function createAndSubmitA2PProfile(ClientData $client, string $customerProfileSid): ?TrustProductsInstance
     {
-        $trustProductsInstance = $this->createEmptyA2PTrustBundle($client, $this->a2PProfilePolicySid);
+        $trustProductsInstance = $this->createEmptyA2PTrustBundle($client, $this->policySid);
 
         $this->assignCustomerProfileA2PTrustBundle($trustProductsInstance->sid, $customerProfileSid);
 
         $trustProductsEvaluationsInstance = $this->evaluateA2PProfileBundle(
             $trustProductsInstance->sid,
-            $this->a2PProfilePolicySid
+            $this->policySid
         );
 
         return $trustProductsEvaluationsInstance->status === Status::BUNDLES_COMPLIANT
@@ -196,7 +191,7 @@ class RegisterService
     /**
      * @throws TwilioException
      */
-    private function createEndUserCustomerProfileInfo(ClientData $client, string $profilePolicyType): EndUserInstance
+    private function createEndUserCustomerProfileInfo(ClientData $client): EndUserInstance
     {
         /**
          * Delay before requests
@@ -209,7 +204,7 @@ class RegisterService
             $endUserInstance = $this->client->trusthub->v1->endUsers
                 ->create(
                     $this->friendlyName($client->getCompanyName()).' Contact Info',
-                    $profilePolicyType."_customer_profile_information",
+                    "starter_customer_profile_information",
                     [
                         'attributes' => [
                             'first_name' => $client->getContactFirstname(),
@@ -446,7 +441,7 @@ class RegisterService
 
         try {
             $customerProfilesInstance = $this->client->trusthub->v1->customerProfiles($customerProfileBundleSid)
-                ->update(['status' => 'pending-review']);
+                ->update(['status' => Status::BUNDLES_PENDING_REVIEW]);
 
             $this->saveNewClientRegistrationHistory(
                 ClientRegistrationHistoryResponseData::createFromArray([
@@ -663,8 +658,7 @@ class RegisterService
     public function createA2PBrand(
         ClientData $client,
         string $a2PProfileBundleSid,
-        string $customerProfileBundleSid,
-        string $profilePolicyType = ''
+        string $customerProfileBundleSid
     ): BrandRegistrationInstance {
         /**
          * Delay before requests
@@ -678,7 +672,7 @@ class RegisterService
                 ->create(
                     $customerProfileBundleSid,
                     $a2PProfileBundleSid,
-                    ['brandType' => $profilePolicyType ?: strtoupper($this->profilePolicyType)]
+                    ['brandType' => 'STARTER']
                 );
 
             //Insert request to history log
@@ -813,8 +807,7 @@ class RegisterService
     public function createA2PMessagingCampaignUseCase(
         ClientData $client,
         string $a2PBrandSid,
-        string $messagingServiceSid,
-        string $profilePolicyType = ''
+        string $messagingServiceSid
     ): UsAppToPersonInstance {
         /**
          * Delay before requests
@@ -830,7 +823,7 @@ class RegisterService
                     $a2PBrandSid,
                     'Send marketing messages about sales and offers',
                     ['Twilio draw the OWL event is ON'],
-                    $profilePolicyType ?: strtoupper($this->profilePolicyType),
+                    'STARTER',
                     true,
                     true
                 );

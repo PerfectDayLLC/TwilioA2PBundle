@@ -20,3 +20,10 @@ information already set.
 You will also need to edit the `config\perfectdayllc\twilioa2pbundle.php` config file:
 * `entity_model` will be used to point to your main System's entity holder (use namespace).
 For example: `App\Models\Company`.
+
+### Configuration
+You only need to add these key/value pairs to `service.twilio`:
+* `sid`: Twilio SID.
+* `token`: Twilio Token.
+* `primary_customer_profile_sid`: https://www.twilio.com/docs/trust-hub/trusthub-rest-api/console-create-a-primary-customer-profile.
+* `customer_profile_policy_sid`: This is a hardcoded value already in place.

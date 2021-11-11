@@ -3,7 +3,6 @@
 namespace PerfectDayLlc\TwilioA2PBundle\Tests\Feature\Commands\RegisterClients;
 
 use Illuminate\Support\Facades\Queue;
-use Illuminate\Support\Str;
 use PerfectDayLlc\TwilioA2PBundle\Entities\Status;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\CreateA2PSmsCampaignUseCase;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\SubmitA2PTrustBundle;
@@ -171,8 +170,6 @@ class RegisterClientsTest extends TestCase
             'services.twilio.token' => $token = 'twilio token 321',
             'services.twilio.primary_customer_profile_sid' => $primaryCustomerSid = 'primary customer sid 555',
             'services.twilio.customer_profile_policy_sid' => $customerProfileSid = 'customer profile sid 789',
-            'services.twilio.a2p_profile_policy_sid' => $profilePolicySid = 'profile policy sid abc',
-            'services.twilio.profile_policy_type' => $profilePolicyType = 'profile policy type zzz',
 
             'twilioa2pbundle.entity_model' => Entity::class,
         ]);
@@ -181,9 +178,7 @@ class RegisterClientsTest extends TestCase
             $sid,
             $token,
             $primaryCustomerSid,
-            $customerProfileSid,
-            $profilePolicySid,
-            $profilePolicyType
+            $customerProfileSid
         );
     }
 }
