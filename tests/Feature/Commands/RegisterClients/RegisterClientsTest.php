@@ -3,8 +3,11 @@
 namespace PerfectDayLlc\TwilioA2PBundle\Tests\Feature\Commands\RegisterClients;
 
 use Illuminate\Support\Facades\Queue;
+use PerfectDayLlc\TwilioA2PBundle\Commands\RegisterClients;
 use PerfectDayLlc\TwilioA2PBundle\Entities\Status;
+use PerfectDayLlc\TwilioA2PBundle\Jobs\CreateA2PBrand;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\CreateA2PSmsCampaignUseCase;
+use PerfectDayLlc\TwilioA2PBundle\Jobs\CreateMessagingService;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\SubmitA2PTrustBundle;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\SubmitCustomerProfileBundle;
 use PerfectDayLlc\TwilioA2PBundle\Services\RegisterService;
@@ -44,11 +47,25 @@ class RegisterClientsTest extends TestCase
         $this->entity = $entity;
     }
 
+    public function test_command_has_correct_data(): void
+    {
+        $command = new RegisterClients;
+
+        $this->assertSame($command->getName(), 'a2p:client-register', 'Wrong signature.');
+        $this->assertSame(
+            'Twilio - Register all companies for the A2P 10DLC US carrier standard compliance',
+            $command->getDescription(),
+            'Wrong description');
+    }
+
+    /**
+     * @depends test_command_has_correct_data
+     */
     public function test_command_should_dispatch_a_customer_profile_creation_job_when_there_is_no_entity_history(): void
     {
         Queue::fake();
 
-        $this->artisan('a2p:client-register')
+        $this->artisan(RegisterClients::class)
             ->assertExitCode(0);
 
         Queue::assertPushedOn(
@@ -61,9 +78,14 @@ class RegisterClientsTest extends TestCase
         );
 
         Queue::assertNotPushed(SubmitA2PTrustBundle::class);
+        Queue::assertNotPushed(CreateA2PBrand::class);
+        Queue::assertNotPushed(CreateMessagingService::class);
         Queue::assertNotPushed(CreateA2PSmsCampaignUseCase::class);
     }
 
+    /**
+     * @depends test_command_has_correct_data
+     */
     public function test_command_should_dispatch_a_submit_a2p_trust_bundle_job_when_specific_request_type_is_found_and_one_day_passed(): void
     {
         $this->createRealClientRegistrationHistoryModel([
@@ -76,7 +98,7 @@ class RegisterClientsTest extends TestCase
 
         Queue::fake();
 
-        $this->artisan('a2p:client-register')
+        $this->artisan(RegisterClients::class)
             ->assertExitCode(0);
 
         Queue::assertPushedOn(
@@ -86,18 +108,87 @@ class RegisterClientsTest extends TestCase
                 return $job->client == ($clientData = $this->entity->getClientData()) &&
                        $job->registerService == $this->registerService &&
                        $job->customerProfileBundleSid === $clientData->getClientRegistrationHistoryModel()->bundle_sid &&
-                       $job->webhookUrl === $clientData->getWebhookUrl() &&
-                       $job->fallbackWebhookUrl === $clientData->getFallbackWebhookUrl() &&
                        $job->createA2PBrand === true &&
                        $job->createMessagingService === true;
             }
         );
 
         Queue::assertNotPushed(SubmitCustomerProfileBundle::class);
+        Queue::assertNotPushed(CreateA2PBrand::class);
+        Queue::assertNotPushed(CreateMessagingService::class);
         Queue::assertNotPushed(CreateA2PSmsCampaignUseCase::class);
     }
 
     /**
+     * @depends test_command_has_correct_data
+     */
+    public function test_command_should_dispatch_a_create_a2p_brand_job_when_specific_request_type_is_found_and_one_day_passed(): void
+    {
+        $this->createRealClientRegistrationHistoryModel([
+            'entity_id' => $this->entity,
+            'request_type' => 'submitA2PProfileBundle',
+            'status' => $this->faker()->randomElement(Status::getOngoingA2PStatuses())
+        ]);
+
+        $this->travel(1)->day();
+
+        Queue::fake();
+
+        $this->artisan(RegisterClients::class)
+            ->assertExitCode(0);
+
+        Queue::assertPushedOn(
+            'create-a2p-brand-job',
+            CreateA2PBrand::class,
+            function (CreateA2pBrand $job) {
+                return $job->registerService == $this->registerService &&
+                       $job->client == ($this->entity->getClientData()) &&
+                        $job->createMessagingService === true;
+            }
+        );
+
+        Queue::assertNotPushed(SubmitCustomerProfileBundle::class);
+        Queue::assertNotPushed(SubmitA2pTrustBundle::class);
+        Queue::assertNotPushed(CreateMessagingService::class);
+        Queue::assertNotPushed(CreateA2PSmsCampaignUseCase::class);
+    }
+
+    /**
+     * @depends test_command_has_correct_data
+     */
+    public function test_command_should_dispatch_a_create_messaging_service_job_when_specific_request_type_is_found_and_one_day_passed(): void
+    {
+        $this->createRealClientRegistrationHistoryModel([
+            'entity_id' => $this->entity,
+            'request_type' => 'createA2PBrand',
+            'status' => $this->faker()->randomElement(Status::getOngoingA2PStatuses())
+        ]);
+
+        $this->travel(1)->day();
+
+        Queue::fake();
+
+        $this->artisan(RegisterClients::class)
+            ->assertExitCode(0);
+
+        Queue::assertPushedOn(
+            'create-messaging-service',
+            CreateMessagingService::class,
+            function (CreateMessagingService $job) {
+                return $job->registerService == $this->registerService &&
+                       $job->client == ($this->entity->getClientData()) &&
+                       $job->addPhoneNumber === true;
+            }
+        );
+
+        Queue::assertNotPushed(SubmitCustomerProfileBundle::class);
+        Queue::assertNotPushed(SubmitA2pTrustBundle::class);
+        Queue::assertNotPushed(CreateA2pBrand::class);
+        Queue::assertNotPushed(CreateA2PSmsCampaignUseCase::class);
+    }
+
+    /**
+     * @depends test_command_has_correct_data
      * @dataProvider createSmsCampaignAllowedStatusesProvider
      */
     public function test_command_should_dispatch_a_create_a2p_sms_campaign_use_case_job_when_specific_request_type_is_found_and_one_day_passed(string $requestType): void
@@ -112,7 +203,7 @@ class RegisterClientsTest extends TestCase
 
         Queue::fake();
 
-        $this->artisan('a2p:client-register')
+        $this->artisan(RegisterClients::class)
             ->assertExitCode(0);
 
         Queue::assertPushedOn(
@@ -125,10 +216,13 @@ class RegisterClientsTest extends TestCase
         );
 
         Queue::assertNotPushed(SubmitA2PTrustBundle::class);
+        Queue::assertNotPushed(CreateA2PBrand::class);
+        Queue::assertNotPushed(CreateMessagingService::class);
         Queue::assertNotPushed(SubmitCustomerProfileBundle::class);
     }
 
     /**
+     * @depends test_command_has_correct_data
      * @dataProvider clientRegistrationHistoriesNotAllowedStatusesProvider
      */
     public function test_command_should_not_dispatch_any_job_when_the_status_is_not_one_of_the_allowed_ones(string $status): void
@@ -140,7 +234,7 @@ class RegisterClientsTest extends TestCase
             'status' => $status
         ]);
 
-        $this->artisan('a2p:client-register')
+        $this->artisan(RegisterClients::class)
             ->assertExitCode(0);
 
         Queue::assertNothingPushed();
@@ -149,7 +243,6 @@ class RegisterClientsTest extends TestCase
     public function createSmsCampaignAllowedStatusesProvider(): array
     {
         return [
-            'Create A2P Brand' => ['createA2PBrand'],
             'Create Messaging Service' => ['createMessagingService'],
             'Add Phone Number to Messaging Service' => ['addPhoneNumberToMessagingService'],
         ];
@@ -161,24 +254,5 @@ class RegisterClientsTest extends TestCase
             ->diff(Status::getOngoingA2PStatuses())
             ->mapWithKeys(fn (string $status, string $key) => [str_headline($key) => [$status]])
             ->toArray();
-    }
-
-    private function createExpectedService(): RegisterService
-    {
-        config([
-            'services.twilio.sid' => $sid = 'twilio sid 123',
-            'services.twilio.token' => $token = 'twilio token 321',
-            'services.twilio.primary_customer_profile_sid' => $primaryCustomerSid = 'primary customer sid 555',
-            'services.twilio.customer_profile_policy_sid' => $customerProfileSid = 'customer profile sid 789',
-
-            'twilioa2pbundle.entity_model' => Entity::class,
-        ]);
-
-        return new RegisterService(
-            $sid,
-            $token,
-            $primaryCustomerSid,
-            $customerProfileSid
-        );
     }
 }

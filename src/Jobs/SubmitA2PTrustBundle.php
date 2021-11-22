@@ -15,23 +15,15 @@ class SubmitA2PTrustBundle extends AbstractMainJob
 
     public string $customerProfileBundleSid;
 
-    public string $fallbackWebhookUrl;
-
-    public string $webhookUrl;
-
     public function __construct(
         RegisterService $registerService,
-        ClientData      $client,
-        string          $customerProfileBundleSid = '',
-        string          $webhookUrl = '',
-        string          $fallbackWebhookUrl = '',
-        bool            $createA2PBrand = false,
-        bool            $createMessagingService = false
+        ClientData $client,
+        string $customerProfileBundleSid = '',
+        bool $createA2PBrand = false,
+        bool $createMessagingService = false
     ) {
         parent::__construct($registerService, $client);
 
-        $this->webhookUrl = $webhookUrl;
-        $this->fallbackWebhookUrl = $fallbackWebhookUrl;
         $this->createA2PBrand = $createA2PBrand;
         $this->createMessagingService = $createMessagingService;
 
@@ -63,8 +55,6 @@ class SubmitA2PTrustBundle extends AbstractMainJob
                 (new CreateMessagingService(
                     $this->registerService,
                     $this->client,
-                    $this->webhookUrl,
-                    $this->fallbackWebhookUrl,
                     true
                 ))
                     ->onQueue('create-messaging-service')

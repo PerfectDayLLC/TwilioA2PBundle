@@ -8,7 +8,9 @@ use Illuminate\Database\Eloquent\Model;
 use PerfectDayLlc\TwilioA2PBundle\Contracts\ClientRegistrationHistory as ClientRegistrationHistoryContract;
 use PerfectDayLlc\TwilioA2PBundle\Entities\RegisterClientsMethodsSignatureEnum;
 use PerfectDayLlc\TwilioA2PBundle\Entities\Status;
+use PerfectDayLlc\TwilioA2PBundle\Jobs\CreateA2PBrand;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\CreateA2PSmsCampaignUseCase;
+use PerfectDayLlc\TwilioA2PBundle\Jobs\CreateMessagingService;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\SubmitA2PTrustBundle;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\SubmitCustomerProfileBundle;
 use PerfectDayLlc\TwilioA2PBundle\Services\RegisterService;
@@ -38,10 +40,8 @@ class RegisterClients extends Command
 
             // Create and Submit Customer Profile if company has never been registered
             if (! ($client->getClientRegistrationHistoryModel()->status ?? false)) {
-                dispatch(
-                    (new SubmitCustomerProfileBundle($service, $client))
-                        ->onQueue('submit-customer-profile-bundle')
-                );
+                dispatch(new SubmitCustomerProfileBundle($service, $client))
+                    ->onQueue('submit-customer-profile-bundle');
 
                 continue;
             }
@@ -59,17 +59,35 @@ class RegisterClients extends Command
             ) {
                 // Create Submit A2P Profile Job
                 dispatch(
-                    (new SubmitA2PTrustBundle(
+                    new SubmitA2PTrustBundle(
                         $service,
                         $client,
                         $client->getClientRegistrationHistoryModel()->bundle_sid ?? '',
-                        $client->getWebhookUrl(),
-                        $client->getFallbackWebhookUrl(),
                         true,
                         true
-                    ))
-                        ->onQueue('submit-a2p-profile-bundle')
-                );
+                    )
+                )
+                    ->onQueue('submit-a2p-profile-bundle');
+
+                continue;
+            }
+
+            // If Create A2p Sms Campaign Use Case
+            if ($client->getClientRegistrationHistoryModel()->request_type ===
+                RegisterClientsMethodsSignatureEnum::SUBMIT_A2P_PROFILE_BUNDLE
+            ) {
+                dispatch(new CreateA2PBrand($service, $client, true))
+                    ->onQueue('create-a2p-brand-job');
+
+                continue;
+            }
+
+            // If Create A2p Sms Campaign Use Case
+            if ($client->getClientRegistrationHistoryModel()->request_type ===
+                RegisterClientsMethodsSignatureEnum::CREATE_A2P_BRAND
+            ) {
+                dispatch(new CreateMessagingService($service, $client, true))
+                    ->onQueue('create-messaging-service');
 
                 continue;
             }
@@ -77,7 +95,6 @@ class RegisterClients extends Command
             $historyTypeInArray = in_array(
                 $client->getClientRegistrationHistoryModel()->request_type,
                 [
-                    RegisterClientsMethodsSignatureEnum::CREATE_A_2_P_BRAND,
                     RegisterClientsMethodsSignatureEnum::CREATE_MESSAGING_SERVICE,
                     RegisterClientsMethodsSignatureEnum::ADD_PHONE_NUMBER_TO_MESSAGING_SERVICE,
                 ]
@@ -86,10 +103,8 @@ class RegisterClients extends Command
             // If Create A2P SMS Campaign use case
             if ($historyTypeInArray) {
                 //Create A2p Sms Campaign UseCase Job
-                dispatch(
-                    (new CreateA2PSmsCampaignUseCase($service, $client))
-                        ->onQueue('create-a2p-sms-campaign-use-case-job')
-                );
+                dispatch(new CreateA2PSmsCampaignUseCase($service, $client))
+                    ->onQueue('create-a2p-sms-campaign-use-case-job');
             }
         }
 

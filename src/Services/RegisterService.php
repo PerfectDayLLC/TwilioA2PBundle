@@ -123,15 +123,9 @@ class RegisterService
     /**
      * @throws TwilioException
      */
-    public function createMessageServiceWithPhoneNumber(
-        ClientData $client,
-        string $webhookUrl,
-        string $fallbackWebhookUrl
-    ): ?PhoneNumberInstance {
-        $serviceInstance = $this->createMessagingService($client,
-            $webhookUrl,
-            $fallbackWebhookUrl
-        );
+    public function createMessageServiceWithPhoneNumber(ClientData $client): ?PhoneNumberInstance
+    {
+        $serviceInstance = $this->createMessagingService($client);
 
         // Add Phone Number to Messaging Service
         return $serviceInstance->sid
@@ -708,11 +702,8 @@ class RegisterService
     /**
      * @throws TwilioException
      */
-    public function createMessagingService(
-        ClientData $client,
-        string $webhookUrl,
-        string $fallbackWebhookUrl
-    ): ServiceInstance {
+    public function createMessagingService(ClientData $client): ServiceInstance
+    {
         /**
          * Delay before requests
          *
@@ -725,8 +716,8 @@ class RegisterService
                 ->create(
                     $this->friendlyName($client->getCompanyName()).' messaging service',
                     [
-                        'inboundRequestUrl' => $webhookUrl,
-                        'fallbackUrl' => $fallbackWebhookUrl,
+                        'inboundRequestUrl' => $client->getWebhookUrl(),
+                        'fallbackUrl' => $client->getFallbackWebhookUrl(),
                     ]
                 );
 

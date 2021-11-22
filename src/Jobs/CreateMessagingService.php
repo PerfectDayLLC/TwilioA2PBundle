@@ -8,23 +8,15 @@ use Twilio\Exceptions\TwilioException;
 
 class CreateMessagingService extends AbstractMainJob
 {
-    private string $webhookUrl;
-
-    private string $fallbackWebhookUrl;
-
-    private bool $addPhoneNumber;
+    public bool $addPhoneNumber;
 
     public function __construct(
         RegisterService $registerService,
         ClientData $client,
-        string $webhookUrl = '',
-        string $fallbackWebhookUrl = '',
         bool $addPhoneNumber = false
     ) {
         parent::__construct($registerService, $client);
 
-        $this->webhookUrl = $webhookUrl;
-        $this->fallbackWebhookUrl = $fallbackWebhookUrl;
         $this->addPhoneNumber = $addPhoneNumber;
     }
 
@@ -35,18 +27,10 @@ class CreateMessagingService extends AbstractMainJob
     {
         if ($this->addPhoneNumber) {
             // Create Messaging Service with Phone
-            $this->registerService->createMessageServiceWithPhoneNumber(
-                $this->client,
-                $this->webhookUrl,
-                $this->fallbackWebhookUrl
-            );
+            $this->registerService->createMessageServiceWithPhoneNumber($this->client);
         } else {
             // Create Messaging Service
-            $this->registerService->createMessagingService(
-                $this->client,
-                $this->webhookUrl,
-                $this->fallbackWebhookUrl
-            );
+            $this->registerService->createMessagingService($this->client);
         }
     }
 }
