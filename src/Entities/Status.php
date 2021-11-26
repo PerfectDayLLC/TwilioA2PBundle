@@ -12,8 +12,8 @@ class Status
     public const BUNDLES_DRAFT = 'draft';
     public const BUNDLES_PENDING_REVIEW = 'pending-review';
     public const BUNDLES_IN_REVIEW = 'in-review';
-    public const BUNDLES_TWILIO_REJECTED = 'twilio-rejected';
     public const BUNDLES_TWILIO_APPROVED = 'twilio-approved';
+    public const BUNDLES_TWILIO_REJECTED = 'twilio-rejected';
 
     // Create an A2P Brand
     public const BRAND_PENDING = 'pending';

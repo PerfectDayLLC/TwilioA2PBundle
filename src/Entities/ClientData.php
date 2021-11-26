@@ -17,11 +17,17 @@ class ClientData
 
     private string $city;
 
-    private string $state;
+    /**
+     * State or Province
+     */
+    private string $region;
 
     private string $zip;
 
-    private string $country;
+    /**
+     * @see https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#Officially_assigned_code_elements
+     */
+    private string $isoCountry;
 
     private string $phone;
 
@@ -47,15 +53,16 @@ class ClientData
 
     /**
      * @param  string|int  $id
+     * @param  string  $region State or Province
      */
     public function __construct(
         $id,
         string $companyName,
         string $address,
         string $city,
-        string $state,
+        string $region,
         string $zip,
-        string $country,
+        string $isoCountry,
         string $phone,
         string $phoneSid,
         string $website,
@@ -72,9 +79,9 @@ class ClientData
         $this->companyName = $companyName;
         $this->address = $address;
         $this->city = $city;
-        $this->state = $state;
+        $this->region = $region;
         $this->zip = $zip;
-        $this->country = $country;
+        $this->isoCountry = $isoCountry;
         $this->phone = $phone;
         $this->phoneSid = $phoneSid;
         $this->website = $website;
@@ -111,9 +118,9 @@ class ClientData
         return $this->city;
     }
 
-    public function getState(): string
+    public function getRegion(): string
     {
-        return $this->state;
+        return $this->region;
     }
 
     public function getZip(): string
@@ -121,9 +128,9 @@ class ClientData
         return $this->zip;
     }
 
-    public function getCountry(): string
+    public function getIsoCountry(): string
     {
-        return $this->country;
+        return $this->isoCountry;
     }
 
     public function getPhone(): string

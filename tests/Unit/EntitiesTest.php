@@ -33,7 +33,7 @@ class EntitiesTest extends TestCase
             $city = 'Orlando',
             $state = 'FL',
             $zipcode = '32827',
-            $country = 'USA',
+            $country = 'US',
             $phone = '+12345678901',
             $phoneSid = 'PNXXXXXXXXXXXXXXXXXXXX',
             $website = 'https://johndoedealer.unitifi.com',
@@ -55,9 +55,9 @@ class EntitiesTest extends TestCase
         $this->assertSame($companyName, $clientData->getCompanyName());
         $this->assertSame($address, $clientData->getAddress());
         $this->assertSame($city, $clientData->getCity());
-        $this->assertSame($state, $clientData->getState());
+        $this->assertSame($state, $clientData->getRegion());
         $this->assertSame($zipcode, $clientData->getZip());
-        $this->assertSame($country, $clientData->getCountry());
+        $this->assertSame($country, $clientData->getIsoCountry());
         $this->assertSame($phone, $clientData->getPhone());
         $this->assertSame($phoneSid, $clientData->getPhoneSid());
         $this->assertSame($website, $clientData->getWebsite());

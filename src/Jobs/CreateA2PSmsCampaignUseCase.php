@@ -33,6 +33,10 @@ class CreateA2PSmsCampaignUseCase extends AbstractMainJob
      */
     public function handle(): void
     {
+        /**
+         * TODO: This will only work once A2P Brand was Status::BRAND_APPROVED else an error will be returned.
+         * @see https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api#51-create-an-a2p-messaging-campaign-use-case
+         */
         $this->registerService->createA2PMessagingCampaignUseCase(
             $this->client,
             $this->a2PBrandSid,

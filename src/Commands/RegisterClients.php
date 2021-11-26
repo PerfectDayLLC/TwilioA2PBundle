@@ -53,6 +53,9 @@ class RegisterClients extends Command
             /**
              * If `submitCustomerProfileBundle` has been submitted for this client at least a day ago,
              * then Submit A2P Profile Bundle, Create Brand, and Create Messaging Service.
+             *
+             * TODO: checking the documentation, it does not explicitly say if we should continue or not
+             * so I am assuming we need to receive a Status::BUNDLES_TWILIO_APPROVED to continue here.
              */
             if ($client->getClientRegistrationHistoryModel()->request_type ===
                 RegisterClientsMethodsSignatureEnum::SUBMIT_CUSTOMER_PROFILE_BUNDLE
@@ -72,7 +75,12 @@ class RegisterClients extends Command
                 continue;
             }
 
-            // If Create A2p Sms Campaign Use Case
+            /**
+             * If Create A2p Sms Campaign Use Case.
+             *
+             * Documentation says that after previous step was done (Status::BUNDLES_PENDING_REVIEW sent)
+             * we can immediately create the A2P Brand.
+             */
             if ($client->getClientRegistrationHistoryModel()->request_type ===
                 RegisterClientsMethodsSignatureEnum::SUBMIT_A2P_PROFILE_BUNDLE
             ) {

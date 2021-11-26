@@ -16,8 +16,7 @@ class TwilioA2PBundleServiceProvider extends ServiceProvider
             fn () => new RegisterService(
                 config('services.twilio.sid'),
                 config('services.twilio.token'),
-                config('services.twilio.primary_customer_profile_sid'),
-                config('services.twilio.customer_profile_policy_sid', 'RN806dd6cd175f314e1f96a9727ee271f4'),
+                config('services.twilio.primary_customer_profile_sid')
             )
         );
     }

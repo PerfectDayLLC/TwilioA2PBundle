@@ -17,7 +17,6 @@ use Twilio\Rest\Messaging\V1\ServiceInstance;
 use Twilio\Rest\Trusthub\V1\CustomerProfiles\CustomerProfilesEvaluationsInstance;
 use Twilio\Rest\Trusthub\V1\CustomerProfilesInstance;
 use Twilio\Rest\Trusthub\V1\EndUserInstance;
-use Twilio\Rest\Trusthub\V1\PoliciesInstance;
 use Twilio\Rest\Trusthub\V1\SupportingDocumentInstance;
 use Twilio\Rest\Trusthub\V1\TrustProducts\TrustProductsEvaluationsInstance;
 use Twilio\Rest\Trusthub\V1\TrustProductsInstance;
@@ -33,19 +32,12 @@ class RegisterService
      */
     protected string $primaryCustomerProfileSid;
 
-    protected string $policySid;
-
-    public function __construct(
-        string $accountSid,
-        string $token,
-        string $primaryCustomerProfileSid,
-        string $customerProfilePolicySid
-    ) {
+    public function __construct(string $accountSid, string $token, string $primaryCustomerProfileSid)
+    {
         try {
             $this->client = new Client($accountSid, $token);
 
             $this->primaryCustomerProfileSid = $primaryCustomerProfileSid;
-            $this->policySid = $customerProfilePolicySid;
 
             $this->requestDelay = 1;
         } catch (ConfigurationException $exception) {
@@ -66,17 +58,17 @@ class RegisterService
      */
     public function createAndSubmitCustomerProfile(ClientData $client): ?CustomerProfilesInstance
     {
-        $customerProfilesInstance = $this->createEmptyCustomerProfileBundle($client, $this->policySid);
+        $customerProfilesInstance = $this->createEmptyCustomerProfileStarterBundle($client);
 
         // Create end-user object of type: customer_profile_information
         $endUserInstance = $this->createEndUserCustomerProfileInfo($client);
 
-        // Create supporting document: customer_profile_address, then create customer_profile_address document
+        // Create supporting document: customer_profile_address
         $addressInstance = $this->createCustomerProfileAddress($client);
 
         // Create Customer Support Docs
         $supportingDocumentInstance = $this->createCustomerSupportDocs(
-            $client->getCompanyName(),
+            "{$client->getCompanyName()} Document Address",
             'customer_profile_address',
             ['address_sids' => $addressInstance->sid]
         );
@@ -90,10 +82,7 @@ class RegisterService
         $this->attachObjectSidToCustomerProfile($customerProfilesInstance->sid, $this->primaryCustomerProfileSid);
 
         // Evaluate the Customer Profile
-        $customerProfilesEvaluationsInstance = $this->evaluateCustomerProfileBundle(
-            $customerProfilesInstance->sid,
-            $this->policySid
-        );
+        $customerProfilesEvaluationsInstance = $this->evaluateCustomerProfileBundle($customerProfilesInstance->sid);
 
         // Submit the Customer Profile for review
         return $customerProfilesEvaluationsInstance->status === Status::BUNDLES_COMPLIANT
@@ -106,14 +95,11 @@ class RegisterService
      */
     public function createAndSubmitA2PProfile(ClientData $client, string $customerProfileSid): ?TrustProductsInstance
     {
-        $trustProductsInstance = $this->createEmptyA2PTrustBundle($client, $this->policySid);
+        $trustProductsInstance = $this->createEmptyA2PStarterTrustBundle($client);
 
         $this->assignCustomerProfileA2PTrustBundle($trustProductsInstance->sid, $customerProfileSid);
 
-        $trustProductsEvaluationsInstance = $this->evaluateA2PProfileBundle(
-            $trustProductsInstance->sid,
-            $this->policySid
-        );
+        $trustProductsEvaluationsInstance = $this->evaluateA2PStarterProfileBundle($trustProductsInstance->sid);
 
         return $trustProductsEvaluationsInstance->status === Status::BUNDLES_COMPLIANT
             ? $this->submitA2PProfileBundle($trustProductsInstance->sid)
@@ -136,10 +122,8 @@ class RegisterService
     /**
      * @throws TwilioException
      */
-    private function createEmptyCustomerProfileBundle(
-        ClientData $client,
-        string $policySid
-    ): CustomerProfilesInstance {
+    private function createEmptyCustomerProfileStarterBundle(ClientData $client): CustomerProfilesInstance
+    {
         /**
          * Delay before requests
          *
@@ -148,11 +132,12 @@ class RegisterService
         sleep($this->requestDelay);
 
         try {
-            $customerProfilesInstance = $this->client->trusthub->v1->customerProfiles
+            $customerProfilesInstance = $this->client->trusthub->v1
+                ->customerProfiles
                 ->create(
                     $this->friendlyName($client->getCompanyName()),
                     $client->getContactEmail(),
-                    $policySid
+                    'RN806dd6cd175f314e1f96a9727ee271f4'
                 );
 
             $this->saveNewClientRegistrationHistory(
@@ -195,10 +180,11 @@ class RegisterService
         sleep($this->requestDelay);
 
         try {
-            $endUserInstance = $this->client->trusthub->v1->endUsers
+            $endUserInstance = $this->client->trusthub->v1
+                ->endUsers
                 ->create(
-                    $this->friendlyName($client->getCompanyName()).' Contact Info',
-                    "starter_customer_profile_information",
+                    "{$this->friendlyName($client->getCompanyName())} Contact Info",
+                    'starter_customer_profile_information',
                     [
                         'attributes' => [
                             'first_name' => $client->getContactFirstname(),
@@ -253,9 +239,9 @@ class RegisterService
                     $client->getCompanyName(),
                     $client->getAddress(),
                     $client->getCity(),
-                    $client->getState(),
+                    $client->getRegion(),
                     $client->getZip(),
-                    $client->getCountry()
+                    $client->getIsoCountry()
                 );
 
             $this->saveNewClientRegistrationHistory(
@@ -300,7 +286,8 @@ class RegisterService
         sleep($this->requestDelay);
 
         try {
-            $supportingDocumentInstance = $this->client->trusthub->v1->supportingDocuments
+            $supportingDocumentInstance = $this->client->trusthub->v1
+                ->supportingDocuments
                 ->create(
                     $this->friendlyName($documentName),
                     $documentType,
@@ -378,8 +365,7 @@ class RegisterService
      * @throws TwilioException
      */
     private function evaluateCustomerProfileBundle(
-        string $customerProfileBundleSid,
-        string $policySid
+        string $customerProfileBundleSid
     ): CustomerProfilesEvaluationsInstance {
         /**
          * Delay before requests
@@ -392,7 +378,7 @@ class RegisterService
             $customerProfilesEvaluationsInstance = $this->client->trusthub->v1
                 ->customerProfiles($customerProfileBundleSid)
                 ->customerProfilesEvaluations
-                ->create($policySid);
+                ->create('RN806dd6cd175f314e1f96a9727ee271f4');
 
             $this->saveNewClientRegistrationHistory(
                 ClientRegistrationHistoryResponseData::createFromArray([
@@ -434,7 +420,8 @@ class RegisterService
         sleep($this->requestDelay);
 
         try {
-            $customerProfilesInstance = $this->client->trusthub->v1->customerProfiles($customerProfileBundleSid)
+            $customerProfilesInstance = $this->client->trusthub->v1
+                ->customerProfiles($customerProfileBundleSid)
                 ->update(['status' => Status::BUNDLES_PENDING_REVIEW]);
 
             $this->saveNewClientRegistrationHistory(
@@ -466,7 +453,7 @@ class RegisterService
     /**
      * @throws TwilioException
      */
-    private function createEmptyA2PTrustBundle(ClientData $client, string $policySid): TrustProductsInstance
+    private function createEmptyA2PStarterTrustBundle(ClientData $client): TrustProductsInstance
     {
         /**
          * Delay before requests
@@ -476,11 +463,12 @@ class RegisterService
         sleep($this->requestDelay);
 
         try {
-            $trustProductsInstance = $this->client->trusthub->v1->trustProducts
+            $trustProductsInstance = $this->client->trusthub->v1
+                ->trustProducts
                 ->create(
-                    $this->friendlyName($client->getCompanyName()),
+                    "A2P Starter for {$this->friendlyName($client->getCompanyName())}",
                     $client->getContactEmail(),
-                    $policySid
+                    'RN670d5d2e282a6130ae063b234b6019c8'
                 );
 
             $this->saveNewClientRegistrationHistory(
@@ -513,10 +501,8 @@ class RegisterService
     /**
      * @throws TwilioException
      */
-    private function assignCustomerProfileA2PTrustBundle(
-        string $trustBundleSid,
-        string $customerProfileSid
-    ): void {
+    private function assignCustomerProfileA2PTrustBundle(string $trustBundleSid, string $customerProfileSid): void
+    {
         /**
          * Delay before requests
          *
@@ -525,7 +511,8 @@ class RegisterService
         sleep($this->requestDelay);
 
         try {
-            $trustProductsEntityAssignmentsInstance = $this->client->trusthub->v1->trustProducts($trustBundleSid)
+            $trustProductsEntityAssignmentsInstance = $this->client->trusthub->v1
+                ->trustProducts($trustBundleSid)
                 ->trustProductsEntityAssignments
                 ->create($customerProfileSid);
 
@@ -558,10 +545,8 @@ class RegisterService
     /**
      * @throws TwilioException
      */
-    private function evaluateA2PProfileBundle(
-        string $trustBundleSid,
-        string $policySid
-    ): TrustProductsEvaluationsInstance {
+    private function evaluateA2PStarterProfileBundle(string $trustBundleSid): TrustProductsEvaluationsInstance
+    {
         /**
          * Delay before requests
          *
@@ -570,9 +555,10 @@ class RegisterService
         sleep($this->requestDelay);
 
         try {
-            $trustProductsEvaluationsInstance = $this->client->trusthub->v1->trustProducts($trustBundleSid)
+            $trustProductsEvaluationsInstance = $this->client->trusthub->v1
+                ->trustProducts($trustBundleSid)
                 ->trustProductsEvaluations
-                ->create($policySid);
+                ->create('RN670d5d2e282a6130ae063b234b6019c8');
 
             //Insert request to history log
             $this->saveNewClientRegistrationHistory(
@@ -615,8 +601,9 @@ class RegisterService
         sleep($this->requestDelay);
 
         try {
-            $trustProductsInstance = $this->client->trusthub->v1->trustProducts($trustBundleSid)
-                ->update(['status' => 'pending-review']);
+            $trustProductsInstance = $this->client->trusthub->v1
+                ->trustProducts($trustBundleSid)
+                ->update(['status' => Status::BUNDLES_PENDING_REVIEW]);
 
             //Insert request to history log
             $this->saveNewClientRegistrationHistory(
@@ -648,6 +635,7 @@ class RegisterService
 
     /**
      * @throws TwilioException
+     * @see https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api#31-get-the-brand-registration-status
      */
     public function createA2PBrand(
         ClientData $client,
@@ -662,7 +650,8 @@ class RegisterService
         sleep($this->requestDelay);
 
         try {
-            $brandRegistrationInstance = $this->client->messaging->v1->brandRegistrations
+            $brandRegistrationInstance = $this->client->messaging->v1
+                ->brandRegistrations
                 ->create(
                     $customerProfileBundleSid,
                     $a2PProfileBundleSid,
@@ -712,9 +701,10 @@ class RegisterService
         sleep($this->requestDelay);
 
         try {
-            $serviceInstance = $this->client->messaging->v1->services
+            $serviceInstance = $this->client->messaging->v1
+                ->services
                 ->create(
-                    $this->friendlyName($client->getCompanyName()).' messaging service',
+                    $this->friendlyName($client->getCompanyName()).' Messaging Service',
                     [
                         'inboundRequestUrl' => $client->getWebhookUrl(),
                         'fallbackUrl' => $client->getFallbackWebhookUrl(),
@@ -762,7 +752,8 @@ class RegisterService
         sleep($this->requestDelay);
 
         try {
-            $phoneNumberInstance = $this->client->messaging->v1->services($messageServiceSid)
+            $phoneNumberInstance = $this->client->messaging->v1
+                ->services($messageServiceSid)
                 ->phoneNumbers
                 ->create($client->getPhoneSid());
 
@@ -808,7 +799,8 @@ class RegisterService
         sleep($this->requestDelay);
 
         try {
-            $usAppToPersonInstance = $this->client->messaging->v1->services($messagingServiceSid)
+            $usAppToPersonInstance = $this->client->messaging->v1
+                ->services($messagingServiceSid)
                 ->usAppToPerson
                 ->create(
                     $a2PBrandSid,
@@ -836,45 +828,6 @@ class RegisterService
                 ClientRegistrationHistoryResponseData::createFromArray([
                     'entity_id' => $client->getId(),
                     'request_type' => __FUNCTION__,
-                    'status' => Status::EXCEPTION_ERROR,
-                    'response' => $this->exceptionToArray($exception),
-                    'error' => true,
-                ])
-            );
-
-            throw $exception;
-        }
-    }
-
-    /**
-     * @throws TwilioException
-     */
-    public function fetchCustomerProfilePolicy(string $policySid): PoliciesInstance
-    {
-        /**
-         * Delay before requests
-         *
-         * @link https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api
-         */
-        sleep($this->requestDelay);
-
-        try {
-            $policiesInstance = $this->client->trusthub->v1->policies($policySid)->fetch();
-
-            $this->saveNewClientRegistrationHistory(
-                ClientRegistrationHistoryResponseData::createFromArray([
-                    'request_type' => __FUNCTION__,
-                    'object_sid' => $policySid,
-                    'response' => $policiesInstance->toArray(),
-                ])
-            );
-
-            return $policiesInstance;
-        } catch (TwilioException $exception) {
-            $this->saveNewClientRegistrationHistory(
-                ClientRegistrationHistoryResponseData::createFromArray([
-                    'request_type' => __FUNCTION__,
-                    'object_sid' => $policySid,
                     'status' => Status::EXCEPTION_ERROR,
                     'response' => $this->exceptionToArray($exception),
                     'error' => true,

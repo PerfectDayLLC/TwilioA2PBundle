@@ -42,7 +42,6 @@ class TestCase extends BaseTestCase
             'services.twilio.sid' => $sid = 'twilio sid 123',
             'services.twilio.token' => $token = 'twilio token 321',
             'services.twilio.primary_customer_profile_sid' => $primaryCustomerSid = 'primary customer sid 555',
-            'services.twilio.customer_profile_policy_sid' => $customerProfileSid = 'customer profile sid 789',
 
             'twilioa2pbundle.entity_model' => Entity::class,
         ]);
@@ -50,8 +49,7 @@ class TestCase extends BaseTestCase
         return new RegisterService(
             $sid,
             $token,
-            $primaryCustomerSid,
-            $customerProfileSid
+            $primaryCustomerSid
         );
     }
 }
