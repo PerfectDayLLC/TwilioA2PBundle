@@ -23,6 +23,10 @@ use Twilio\Rest\Trusthub\V1\TrustProductsInstance;
 
 class RegisterService
 {
+    private const STARTER_CUSTOMER_PROFILE_BUNDLE_POLICY_SID = 'RN806dd6cd175f314e1f96a9727ee271f4';
+
+    private const STARTER_TRUST_BUNDLE_POLICY_SID = 'RN670d5d2e282a6130ae063b234b6019c8';
+
     protected Client $client;
 
     protected int $requestDelay;
@@ -137,7 +141,7 @@ class RegisterService
                 ->create(
                     $this->friendlyName($client->getCompanyName()),
                     $client->getContactEmail(),
-                    'RN806dd6cd175f314e1f96a9727ee271f4'
+                    self::STARTER_CUSTOMER_PROFILE_BUNDLE_POLICY_SID
                 );
 
             $this->saveNewClientRegistrationHistory(
@@ -378,7 +382,7 @@ class RegisterService
             $customerProfilesEvaluationsInstance = $this->client->trusthub->v1
                 ->customerProfiles($customerProfileBundleSid)
                 ->customerProfilesEvaluations
-                ->create('RN806dd6cd175f314e1f96a9727ee271f4');
+                ->create(self::STARTER_CUSTOMER_PROFILE_BUNDLE_POLICY_SID);
 
             $this->saveNewClientRegistrationHistory(
                 ClientRegistrationHistoryResponseData::createFromArray([
@@ -468,7 +472,7 @@ class RegisterService
                 ->create(
                     "A2P Starter for {$this->friendlyName($client->getCompanyName())}",
                     $client->getContactEmail(),
-                    'RN670d5d2e282a6130ae063b234b6019c8'
+                    self::STARTER_TRUST_BUNDLE_POLICY_SID
                 );
 
             $this->saveNewClientRegistrationHistory(
@@ -558,7 +562,7 @@ class RegisterService
             $trustProductsEvaluationsInstance = $this->client->trusthub->v1
                 ->trustProducts($trustBundleSid)
                 ->trustProductsEvaluations
-                ->create('RN670d5d2e282a6130ae063b234b6019c8');
+                ->create(self::STARTER_TRUST_BUNDLE_POLICY_SID);
 
             //Insert request to history log
             $this->saveNewClientRegistrationHistory(
