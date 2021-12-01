@@ -62,7 +62,7 @@ class RegisterClients extends Command
                     new SubmitA2PTrustBundle(
                         $service,
                         $client,
-                        $client->getClientRegistrationHistoryModel()->bundle_sid ?? ''
+                        $client->getClientRegistrationHistoryModel()->bundle_sid ?? null
                     )
                 )
                     ->onQueue('submit-a2p-profile-bundle');
