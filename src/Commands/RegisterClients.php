@@ -30,7 +30,8 @@ class RegisterClients extends Command
         $unregisteredClients = $entityNamespaceModel::with('twilioA2PClientRegistrationHistories')
             ->whereHas('twilioA2PClientRegistrationHistories', function (Builder $query) {
                 return $query->whereNull('status')
-                    ->orWhereIn('status', Status::getOngoingA2PStatuses());
+                    ->orWhereIn('status', Status::getOngoingA2PStatuses())
+                    ->where('error', false);
             })
             ->orWhereDoesntHave('twilioA2PClientRegistrationHistories');
 
@@ -43,10 +44,6 @@ class RegisterClients extends Command
                 dispatch(new SubmitCustomerProfileBundle($service, $client))
                     ->onQueue('submit-customer-profile-bundle');
 
-                continue;
-            }
-
-            if ($client->getClientRegistrationHistoryModel()->created_at->diffInDays() < 1) {
                 continue;
             }
 
@@ -65,9 +62,7 @@ class RegisterClients extends Command
                     new SubmitA2PTrustBundle(
                         $service,
                         $client,
-                        $client->getClientRegistrationHistoryModel()->bundle_sid ?? '',
-                        true,
-                        true
+                        $client->getClientRegistrationHistoryModel()->bundle_sid ?? ''
                     )
                 )
                     ->onQueue('submit-a2p-profile-bundle');
@@ -84,7 +79,7 @@ class RegisterClients extends Command
             if ($client->getClientRegistrationHistoryModel()->request_type ===
                 RegisterClientsMethodsSignatureEnum::SUBMIT_A2P_PROFILE_BUNDLE
             ) {
-                dispatch(new CreateA2PBrand($service, $client, true))
+                dispatch(new CreateA2PBrand($service, $client))
                     ->onQueue('create-a2p-brand-job');
 
                 continue;
@@ -94,22 +89,20 @@ class RegisterClients extends Command
             if ($client->getClientRegistrationHistoryModel()->request_type ===
                 RegisterClientsMethodsSignatureEnum::CREATE_A2P_BRAND
             ) {
-                dispatch(new CreateMessagingService($service, $client, true))
+                dispatch(new CreateMessagingService($service, $client))
                     ->onQueue('create-messaging-service');
 
                 continue;
             }
 
-            $historyTypeInArray = in_array(
-                $client->getClientRegistrationHistoryModel()->request_type,
-                [
-                    RegisterClientsMethodsSignatureEnum::CREATE_MESSAGING_SERVICE,
-                    RegisterClientsMethodsSignatureEnum::ADD_PHONE_NUMBER_TO_MESSAGING_SERVICE,
-                ]
-            );
+            if ($client->getClientRegistrationHistoryModel()->created_at->diffInDays() < 1) {
+                continue;
+            }
 
             // If Create A2P SMS Campaign use case
-            if ($historyTypeInArray) {
+            if ($client->getClientRegistrationHistoryModel()->request_type ===
+                RegisterClientsMethodsSignatureEnum::ADD_PHONE_NUMBER_TO_MESSAGING_SERVICE
+            ) {
                 //Create A2p Sms Campaign UseCase Job
                 dispatch(new CreateA2PSmsCampaignUseCase($service, $client))
                     ->onQueue('create-a2p-sms-campaign-use-case-job');

@@ -13,30 +13,21 @@ class CreateA2PBrand extends AbstractMainJob
 
     public string $a2PProfileBundleSid;
 
-    public bool $createMessagingService;
-
     public function __construct(
         RegisterService $registerService,
-        ClientData $client,
-        bool $createMessagingService = false,
-        string $a2PProfileBundleSid = '',
-        string $customerProfileBundleSid = ''
+        ClientData $client
     ) {
         parent::__construct($registerService, $client);
 
-        $this->createMessagingService = $createMessagingService;
+        $this->a2PProfileBundleSid = ClientRegistrationHistory::getBundleSidForAllowedStatuses(
+            'submitA2PProfileBundle',
+            $this->client->getId()
+        );
 
-        $this->a2PProfileBundleSid = $a2PProfileBundleSid ?:
-            ClientRegistrationHistory::getBundleSidForAllowedStatuses(
-                'submitA2PProfileBundle',
-                $this->client->getId()
-            );
-
-        $this->customerProfileBundleSid = $customerProfileBundleSid ?:
-            ClientRegistrationHistory::getBundleSidForAllowedStatuses(
-                'submitCustomerProfileBundle',
-                $this->client->getId()
-            );
+        $this->customerProfileBundleSid = ClientRegistrationHistory::getBundleSidForAllowedStatuses(
+            'submitCustomerProfileBundle',
+            $this->client->getId()
+        );
     }
 
     /**
@@ -44,21 +35,10 @@ class CreateA2PBrand extends AbstractMainJob
      */
     public function handle(): void
     {
-        $brandRegistrationInstance = $this->registerService->createA2PBrand(
+        $this->registerService->createA2PBrand(
             $this->client,
             $this->a2PProfileBundleSid,
             $this->customerProfileBundleSid
         );
-
-        if ($brandRegistrationInstance->sid && $this->createMessagingService) {
-            dispatch(
-                new CreateMessagingService(
-                    $this->registerService,
-                    $this->client,
-                    true
-                )
-            )
-                ->onQueue('create-messaging-service');
-        }
     }
 }

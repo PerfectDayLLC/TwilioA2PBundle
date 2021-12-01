@@ -391,6 +391,7 @@ class RegisterService
                     'object_sid' => $customerProfilesEvaluationsInstance->sid,
                     'status' => $customerProfilesEvaluationsInstance->status,
                     'response' => $customerProfilesEvaluationsInstance->toArray(),
+                    'error' => $customerProfilesEvaluationsInstance->status === Status::BUNDLES_NONCOMPLIANT,
                 ])
             );
 
@@ -400,7 +401,7 @@ class RegisterService
                 ClientRegistrationHistoryResponseData::createFromArray([
                     'request_type' => __FUNCTION__,
                     'bundle_sid' => $customerProfileBundleSid,
-                    'object_sid' => $policySid,
+                    'object_sid' => self::STARTER_CUSTOMER_PROFILE_BUNDLE_POLICY_SID,
                     'status' => Status::EXCEPTION_ERROR,
                     'response' => $this->exceptionToArray($exception),
                     'error' => true,
@@ -572,6 +573,7 @@ class RegisterService
                     'object_sid' => $trustProductsEvaluationsInstance->sid,
                     'status' => $trustProductsEvaluationsInstance->status,
                     'response' => $trustProductsEvaluationsInstance->toArray(),
+                    'error' => $trustProductsEvaluationsInstance->status === Status::BUNDLES_NONCOMPLIANT,
                 ])
             );
 
@@ -581,7 +583,7 @@ class RegisterService
                 ClientRegistrationHistoryResponseData::createFromArray([
                     'request_type' => __FUNCTION__,
                     'bundle_sid' => $trustBundleSid,
-                    'object_sid' => $policySid,
+                    'object_sid' => self::STARTER_TRUST_BUNDLE_POLICY_SID,
                     'status' => Status::EXCEPTION_ERROR,
                     'response' => $this->exceptionToArray($exception),
                     'error' => true,

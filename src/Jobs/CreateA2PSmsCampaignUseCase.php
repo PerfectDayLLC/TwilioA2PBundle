@@ -15,17 +15,19 @@ class CreateA2PSmsCampaignUseCase extends AbstractMainJob
 
     public function __construct(
         RegisterService $registerService,
-        ClientData $client,
-        string $a2PBrandSid = '',
-        string $messagingServiceSid = ''
+        ClientData $client
     ) {
         parent::__construct($registerService, $client);
 
-        $this->a2PBrandSid = $a2PBrandSid ?:
-            ClientRegistrationHistory::getBundleSidForAllowedStatuses('createA2PBrand', $client->getId());
+        $this->a2PBrandSid = ClientRegistrationHistory::getBundleSidForAllowedStatuses(
+            'createA2PBrand',
+            $client->getId()
+        );
 
-        $this->messagingServiceSid = $messagingServiceSid ?:
-            ClientRegistrationHistory::getBundleSidForAllowedStatuses('createMessagingService', $client->getId());
+        $this->messagingServiceSid = ClientRegistrationHistory::getBundleSidForAllowedStatuses(
+            'createMessagingService',
+            $client->getId()
+        );
     }
 
     /**
