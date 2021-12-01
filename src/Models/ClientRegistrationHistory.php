@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use PerfectDayLlc\TwilioA2PBundle\Entities\Status;
+use Ramsey\Uuid\Uuid;
 
 /**
  * @property int|string $id
@@ -57,6 +58,36 @@ class ClientRegistrationHistory extends Model
     protected $casts = [
         'response' => 'array',
     ];
+
+    public function __construct(array $attributes = [])
+    {
+        if (self::isEntityModelUsingUuid()) {
+            $this->keyType = 'string';
+            $this->incrementing = false;
+        }
+
+        parent::__construct($attributes);
+    }
+
+    private static function isEntityModelUsingUuid(): bool
+    {
+        /** @var \Illuminate\Database\Eloquent\Model $entityModel */
+        $entityModel = config('twilioa2pbundle.entity_model');
+
+        return !in_array((new $entityModel)->getKeyType(), ['int', 'integer']);
+    }
+
+    protected static function booted()
+    {
+        parent::booted();
+
+        static::creating(function (self $model): void {
+            // Automatically generate a UUID if using them, and not provided.
+            if (self::isEntityModelUsingUuid() && empty($model->{$model->getKeyName()})) {
+                $model->{$model->getKeyName()} = Uuid::uuid4();
+            }
+        });
+    }
 
     public function entity(): BelongsTo
     {

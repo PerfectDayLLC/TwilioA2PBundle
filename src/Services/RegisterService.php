@@ -36,25 +36,16 @@ class RegisterService
      */
     protected string $primaryCustomerProfileSid;
 
+    /**
+     * @throws ConfigurationException
+     */
     public function __construct(string $accountSid, string $token, string $primaryCustomerProfileSid)
     {
-        try {
-            $this->client = new Client($accountSid, $token);
+        $this->client = new Client($accountSid, $token);
 
-            $this->primaryCustomerProfileSid = $primaryCustomerProfileSid;
+        $this->primaryCustomerProfileSid = $primaryCustomerProfileSid;
 
-            $this->requestDelay = 1;
-        } catch (ConfigurationException $exception) {
-            $this->saveNewClientRegistrationHistory(
-                ClientRegistrationHistoryResponseData::createFromArray([
-                    'entity_id' => 0,
-                    'request_type' => __FUNCTION__,
-                    'status' => Status::EXCEPTION_ERROR,
-                    'response' => $this->exceptionToArray($exception),
-                    'error' => true,
-                ])
-            );
-        }
+        $this->requestDelay = 1;
     }
 
     /**
@@ -72,6 +63,7 @@ class RegisterService
 
         // Create Customer Support Docs
         $supportingDocumentInstance = $this->createCustomerSupportDocs(
+            $client,
             "{$client->getCompanyName()} Document Address",
             'customer_profile_address',
             ['address_sids' => $addressInstance->sid]
@@ -81,16 +73,27 @@ class RegisterService
          * Assign end-user, supporting document, and primary customer profile to the empty customer profile that
          * you created
          */
-        $this->attachObjectSidToCustomerProfile($customerProfilesInstance->sid, $endUserInstance->sid);
-        $this->attachObjectSidToCustomerProfile($customerProfilesInstance->sid, $supportingDocumentInstance->sid);
-        $this->attachObjectSidToCustomerProfile($customerProfilesInstance->sid, $this->primaryCustomerProfileSid);
+        $this->attachObjectSidToCustomerProfile($client, $customerProfilesInstance->sid, $endUserInstance->sid);
+        $this->attachObjectSidToCustomerProfile(
+            $client,
+            $customerProfilesInstance->sid,
+            $supportingDocumentInstance->sid
+        );
+        $this->attachObjectSidToCustomerProfile(
+            $client,
+            $customerProfilesInstance->sid,
+            $this->primaryCustomerProfileSid
+        );
 
         // Evaluate the Customer Profile
-        $customerProfilesEvaluationsInstance = $this->evaluateCustomerProfileBundle($customerProfilesInstance->sid);
+        $customerProfilesEvaluationsInstance = $this->evaluateCustomerProfileBundle(
+            $client,
+            $customerProfilesInstance->sid
+        );
 
         // Submit the Customer Profile for review
         return $customerProfilesEvaluationsInstance->status === Status::BUNDLES_COMPLIANT
-            ? $this->submitCustomerProfileBundle($customerProfilesInstance->sid)
+            ? $this->submitCustomerProfileBundle($client, $customerProfilesInstance->sid)
             : null;
     }
 
@@ -101,12 +104,19 @@ class RegisterService
     {
         $trustProductsInstance = $this->createEmptyA2PStarterTrustBundle($client);
 
-        $this->assignCustomerProfileA2PTrustBundle($trustProductsInstance->sid, $customerProfileSid);
+        $this->assignCustomerProfileA2PTrustBundle(
+            $client,
+            $trustProductsInstance->sid,
+            $customerProfileSid
+        );
 
-        $trustProductsEvaluationsInstance = $this->evaluateA2PStarterProfileBundle($trustProductsInstance->sid);
+        $trustProductsEvaluationsInstance = $this->evaluateA2PStarterProfileBundle(
+            $client,
+            $trustProductsInstance->sid
+        );
 
         return $trustProductsEvaluationsInstance->status === Status::BUNDLES_COMPLIANT
-            ? $this->submitA2PProfileBundle($trustProductsInstance->sid)
+            ? $this->submitA2PProfileBundle($client, $trustProductsInstance->sid)
             : null;
     }
 
@@ -278,6 +288,7 @@ class RegisterService
      * @throws TwilioException
      */
     private function createCustomerSupportDocs(
+        ClientData $client,
         string $documentName,
         string $documentType,
         array $attributes
@@ -300,6 +311,7 @@ class RegisterService
 
             $this->saveNewClientRegistrationHistory(
                 ClientRegistrationHistoryResponseData::createFromArray([
+                    'entity_id' => $client->getId(),
                     'request_type' => __FUNCTION__,
                     'object_sid' => $supportingDocumentInstance->sid,
                     'status' => $supportingDocumentInstance->status,
@@ -311,6 +323,7 @@ class RegisterService
         } catch (TwilioException $exception) {
             $this->saveNewClientRegistrationHistory(
                 ClientRegistrationHistoryResponseData::createFromArray([
+                    'entity_id' => $client->getId(),
                     'request_type' => __FUNCTION__,
                     'status' => Status::EXCEPTION_ERROR,
                     'response' => $this->exceptionToArray($exception),
@@ -325,8 +338,11 @@ class RegisterService
     /**
      * @throws TwilioException
      */
-    private function attachObjectSidToCustomerProfile(string $customerProfileBundleSid, string $objectSid): void
-    {
+    private function attachObjectSidToCustomerProfile(
+        ClientData $client,
+        string $customerProfileBundleSid,
+        string $objectSid
+    ): void {
         /**
          * Delay before requests
          *
@@ -342,6 +358,7 @@ class RegisterService
 
             $this->saveNewClientRegistrationHistory(
                 ClientRegistrationHistoryResponseData::createFromArray([
+                    'entity_id' => $client->getId(),
                     'request_type' => __FUNCTION__,
                     'bundle_sid' => $customerProfileBundleSid,
                     'object_sid' => $customerProfilesEntityAssignmentsInstance->sid,
@@ -352,6 +369,7 @@ class RegisterService
         } catch (TwilioException $exception) {
             $this->saveNewClientRegistrationHistory(
                 ClientRegistrationHistoryResponseData::createFromArray([
+                    'entity_id' => $client->getId(),
                     'request_type' => __FUNCTION__,
                     'bundle_sid' => $customerProfileBundleSid,
                     'object_sid' => $objectSid,
@@ -369,6 +387,7 @@ class RegisterService
      * @throws TwilioException
      */
     private function evaluateCustomerProfileBundle(
+        ClientData $client,
         string $customerProfileBundleSid
     ): CustomerProfilesEvaluationsInstance {
         /**
@@ -386,6 +405,7 @@ class RegisterService
 
             $this->saveNewClientRegistrationHistory(
                 ClientRegistrationHistoryResponseData::createFromArray([
+                    'entity_id' => $client->getId(),
                     'request_type' => __FUNCTION__,
                     'bundle_sid' => $customerProfileBundleSid,
                     'object_sid' => $customerProfilesEvaluationsInstance->sid,
@@ -399,6 +419,7 @@ class RegisterService
         } catch (TwilioException $exception) {
             $this->saveNewClientRegistrationHistory(
                 ClientRegistrationHistoryResponseData::createFromArray([
+                    'entity_id' => $client->getId(),
                     'request_type' => __FUNCTION__,
                     'bundle_sid' => $customerProfileBundleSid,
                     'object_sid' => self::STARTER_CUSTOMER_PROFILE_BUNDLE_POLICY_SID,
@@ -415,8 +436,10 @@ class RegisterService
     /**
      * @throws TwilioException
      */
-    private function submitCustomerProfileBundle(string $customerProfileBundleSid): CustomerProfilesInstance
-    {
+    private function submitCustomerProfileBundle(
+        ClientData $client,
+        string $customerProfileBundleSid
+    ): CustomerProfilesInstance {
         /**
          * Delay before requests
          *
@@ -431,6 +454,7 @@ class RegisterService
 
             $this->saveNewClientRegistrationHistory(
                 ClientRegistrationHistoryResponseData::createFromArray([
+                    'entity_id' => $client->getId(),
                     'request_type' => __FUNCTION__,
                     'bundle_sid' => $customerProfileBundleSid,
                     'object_sid' => $customerProfilesInstance->sid,
@@ -443,6 +467,7 @@ class RegisterService
         } catch (TwilioException $exception) {
             $this->saveNewClientRegistrationHistory(
                 ClientRegistrationHistoryResponseData::createFromArray([
+                    'entity_id' => $client->getId(),
                     'request_type' => __FUNCTION__,
                     'bundle_sid' => $customerProfileBundleSid,
                     'status' => Status::EXCEPTION_ERROR,
@@ -506,8 +531,11 @@ class RegisterService
     /**
      * @throws TwilioException
      */
-    private function assignCustomerProfileA2PTrustBundle(string $trustBundleSid, string $customerProfileSid): void
-    {
+    private function assignCustomerProfileA2PTrustBundle(
+        ClientData $client,
+        string $trustBundleSid,
+        string $customerProfileSid
+    ): void {
         /**
          * Delay before requests
          *
@@ -524,6 +552,7 @@ class RegisterService
             //Insert request to history log
             $this->saveNewClientRegistrationHistory(
                 ClientRegistrationHistoryResponseData::createFromArray([
+                    'entity_id' => $client->getId(),
                     'request_type' => __FUNCTION__,
                     'bundle_sid' => $trustBundleSid,
                     'object_sid' => $trustProductsEntityAssignmentsInstance->sid,
@@ -534,6 +563,7 @@ class RegisterService
         } catch (TwilioException $exception) {
             $this->saveNewClientRegistrationHistory(
                 ClientRegistrationHistoryResponseData::createFromArray([
+                    'entity_id' => $client->getId(),
                     'request_type' => __FUNCTION__,
                     'bundle_sid' => $trustBundleSid,
                     'object_sid' => $customerProfileSid,
@@ -550,8 +580,10 @@ class RegisterService
     /**
      * @throws TwilioException
      */
-    private function evaluateA2PStarterProfileBundle(string $trustBundleSid): TrustProductsEvaluationsInstance
-    {
+    private function evaluateA2PStarterProfileBundle(
+        ClientData $client,
+        string $trustBundleSid
+    ): TrustProductsEvaluationsInstance {
         /**
          * Delay before requests
          *
@@ -568,6 +600,7 @@ class RegisterService
             //Insert request to history log
             $this->saveNewClientRegistrationHistory(
                 ClientRegistrationHistoryResponseData::createFromArray([
+                    'entity_id' => $client->getId(),
                     'request_type' => __FUNCTION__,
                     'bundle_sid' => $trustBundleSid,
                     'object_sid' => $trustProductsEvaluationsInstance->sid,
@@ -581,6 +614,7 @@ class RegisterService
         } catch (TwilioException $exception) {
             $this->saveNewClientRegistrationHistory(
                 ClientRegistrationHistoryResponseData::createFromArray([
+                    'entity_id' => $client->getId(),
                     'request_type' => __FUNCTION__,
                     'bundle_sid' => $trustBundleSid,
                     'object_sid' => self::STARTER_TRUST_BUNDLE_POLICY_SID,
@@ -597,7 +631,7 @@ class RegisterService
     /**
      * @throws TwilioException
      */
-    private function submitA2PProfileBundle(string $trustBundleSid): TrustProductsInstance
+    private function submitA2PProfileBundle(ClientData $client, string $trustBundleSid): TrustProductsInstance
     {
         /**
          * Delay before requests
@@ -614,6 +648,7 @@ class RegisterService
             //Insert request to history log
             $this->saveNewClientRegistrationHistory(
                 ClientRegistrationHistoryResponseData::createFromArray([
+                    'entity_id' => $client->getId(),
                     'request_type' => __FUNCTION__,
                     'bundle_sid' => $trustBundleSid,
                     'object_sid' => $trustBundleSid,
@@ -626,6 +661,7 @@ class RegisterService
         } catch (TwilioException $exception) {
             $this->saveNewClientRegistrationHistory(
                 ClientRegistrationHistoryResponseData::createFromArray([
+                    'entity_id' => $client->getId(),
                     'request_type' => __FUNCTION__,
                     'bundle_sid' => $trustBundleSid,
                     'object_sid' => $trustBundleSid,
