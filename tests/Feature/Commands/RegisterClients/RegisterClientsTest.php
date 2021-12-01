@@ -107,9 +107,7 @@ class RegisterClientsTest extends TestCase
             function (SubmitA2PTrustBundle $job) {
                 return $job->client == ($clientData = $this->entity->getClientData()) &&
                        $job->registerService == $this->registerService &&
-                       $job->customerProfileBundleSid === $clientData->getClientRegistrationHistoryModel()->bundle_sid &&
-                       $job->createA2PBrand === true &&
-                       $job->createMessagingService === true;
+                       $job->customerProfileBundleSid === $clientData->getClientRegistrationHistoryModel()->bundle_sid;
             }
         );
 
@@ -142,8 +140,7 @@ class RegisterClientsTest extends TestCase
             CreateA2PBrand::class,
             function (CreateA2pBrand $job) {
                 return $job->registerService == $this->registerService &&
-                       $job->client == ($this->entity->getClientData()) &&
-                        $job->createMessagingService === true;
+                       $job->client == ($this->entity->getClientData());
             }
         );
 
@@ -176,8 +173,7 @@ class RegisterClientsTest extends TestCase
             CreateMessagingService::class,
             function (CreateMessagingService $job) {
                 return $job->registerService == $this->registerService &&
-                       $job->client == ($this->entity->getClientData()) &&
-                       $job->addPhoneNumber === true;
+                       $job->client == ($this->entity->getClientData());
             }
         );
 

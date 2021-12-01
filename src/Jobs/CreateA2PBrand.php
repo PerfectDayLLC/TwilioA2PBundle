@@ -9,9 +9,9 @@ use Twilio\Exceptions\TwilioException;
 
 class CreateA2PBrand extends AbstractMainJob
 {
-    public string $customerProfileBundleSid;
+    public ?string $customerProfileBundleSid;
 
-    public string $a2PProfileBundleSid;
+    public ?string $a2PProfileBundleSid;
 
     public function __construct(
         RegisterService $registerService,

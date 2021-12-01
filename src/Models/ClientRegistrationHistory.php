@@ -125,6 +125,6 @@ class ClientRegistrationHistory extends Model
             ->latest()
             ->first();
 
-        return $self->bundle_sid;
+        return $self->bundle_sid ?? null;
     }
 }
