@@ -2,6 +2,7 @@
 
 namespace PerfectDayLlc\TwilioA2PBundle\Entities;
 
+use Illuminate\Support\Str;
 use PerfectDayLlc\TwilioA2PBundle\Models\ClientRegistrationHistory;
 
 class ClientData
@@ -88,11 +89,20 @@ class ClientData
         $this->contactFirstname = $contactFirstname;
         $this->contactLastname = $contactLastname;
         $this->contactEmail = $contactEmail;
-        $this->contactPhone = $contactPhone;
+        $this->contactPhone = $this->formatPhoneNumber($contactPhone);
         $this->webhookUrl = $webhookUrl;
         $this->fallbackWebhookUrl = $fallbackWebhookUrl;
         $this->clientOwnerData = $clientOwnerData;
         $this->clientRegistrationHistoryModel = $clientRegistrationHistoryModel;
+    }
+
+    private function formatPhoneNumber($phoneNumber): string
+    {
+        $modifiedPhoneNumber = str_replace(['-', '(', ')', ' '], '', $phoneNumber);
+
+        $modifiedPhoneNumber = Str::start($modifiedPhoneNumber, '+1');
+
+        return Str::limit($modifiedPhoneNumber, 12, '');
     }
 
     /**

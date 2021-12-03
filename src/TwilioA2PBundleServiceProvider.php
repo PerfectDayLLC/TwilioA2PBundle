@@ -30,16 +30,6 @@ class TwilioA2PBundleServiceProvider extends ServiceProvider
                 __DIR__.'/../config/twilioa2pbundle.php' => config_path('perfectdayllc/twilioa2pbundle.php')
             ], 'twilio-a2p-bundle-config');
 
-            $version = '8.x+';
-            if (version_compare($this->app->version(), '8', '<')) {
-                $version = '7.x-';
-            }
-
-            $this->publishes([
-                __DIR__."/../database/factories/$version/ClientRegistrationHistoryFactory.php" =>
-                    database_path('factories/ClientRegistrationHistoryFactory.php')
-            ], 'twilio-a2p-bundle-factories');
-
             $this->commands([
                 Commands\RegisterClients::class
             ]);

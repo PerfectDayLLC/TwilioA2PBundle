@@ -6,8 +6,8 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 use PerfectDayLlc\TwilioA2PBundle\Entities\Status;
-use Ramsey\Uuid\Uuid;
 
 /**
  * @property int|string $id
@@ -56,6 +56,7 @@ class ClientRegistrationHistory extends Model
     ];
 
     protected $casts = [
+        'error' => 'boolean',
         'response' => 'array',
     ];
 
@@ -69,14 +70,6 @@ class ClientRegistrationHistory extends Model
         parent::__construct($attributes);
     }
 
-    private static function isEntityModelUsingUuid(): bool
-    {
-        /** @var \Illuminate\Database\Eloquent\Model $entityModel */
-        $entityModel = config('twilioa2pbundle.entity_model');
-
-        return !in_array((new $entityModel)->getKeyType(), ['int', 'integer']);
-    }
-
     protected static function booted()
     {
         parent::booted();
@@ -84,17 +77,31 @@ class ClientRegistrationHistory extends Model
         static::creating(function (self $model): void {
             // Automatically generate a UUID if using them, and not provided.
             if (self::isEntityModelUsingUuid() && empty($model->{$model->getKeyName()})) {
-                $model->{$model->getKeyName()} = Uuid::uuid4();
+                $model->{$model->getKeyName()} = Str::uuid();
             }
         });
     }
 
+    private static function isEntityModelUsingUuid(): bool
+    {
+        /** @var string $entityModelString */
+        $entityModelString = config('twilioa2pbundle.entity_model');
+
+        /** @var Model $entityModel */
+        $entityModel = new $entityModelString;
+
+        return !in_array($entityModel->getKeyType(), ['int', 'integer']);
+    }
+
     public function entity(): BelongsTo
     {
-        /** @var string $entityModel */
-        $entityModel = config('twilioa2pbundle.entity_model');
+        /** @var string $entityModelString */
+        $entityModelString = config('twilioa2pbundle.entity_model');
 
-        return $this->belongsTo($entityModel, (new $entityModel)->getKeyName());
+        /** @var Model $entityModel */
+        $entityModel = new $entityModelString;
+
+        return $this->belongsTo($entityModelString, $entityModel->getKeyName());
     }
 
     public function scopeAllowedStatuses(Builder $query, array $types = []): Builder

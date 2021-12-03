@@ -12,7 +12,7 @@ $factory->define(ClientRegistrationHistory::class, function (Faker $faker) {
         'request_type' => $faker->word(),
         'bundle_sid' => $faker->regexify('BU[A-Z0-9]{16}'),
         'object_sid' => $faker->regexify('BU[A-Z0-9]{16}'),
-        'status' => $faker->randomElement(Status::getConstants()),
+        'status' => $faker->randomElement(Status::getOngoingA2PStatuses()),
         'response' => [],
         'error' => false,
     ];

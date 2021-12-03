@@ -11,29 +11,29 @@ class ClientRegistrationHistoryResponseData
      */
     private $entityId;
 
-    private string $bundleSid;
+    private ?string $bundleSid;
 
     private bool $error;
 
-    private string $objectSid;
+    private ?string $objectSid;
 
-    private string $requestType;
+    private ?string $requestType;
 
-    private array $response;
+    private ?array $response;
 
-    private string $status;
+    private ?string $status;
 
     /**
      * @param  string|int  $entityId
      */
     public function __construct(
-        $entityId = '',
-        string $requestType = '',
+        $entityId = null,
+        ?string $requestType = null,
         bool $error = false,
-        string $bundleSid = '',
-        string $objectSid = '',
-        string $status = '',
-        array $response = []
+        ?string $bundleSid = null,
+        ?string $objectSid = null,
+        ?string $status = null,
+        ?array $response = null
     ) {
         $this->entityId = $entityId;
         $this->requestType = $requestType;
@@ -47,13 +47,13 @@ class ClientRegistrationHistoryResponseData
     public static function createFromArray(array $historyData): self
     {
         return new self(
-            Arr::get($historyData, 'entity_id', ''),
-            Arr::get($historyData, 'request_type', ''),
+            Arr::get($historyData, 'entity_id'),
+            Arr::get($historyData, 'request_type'),
             $historyData['error'] ?? false,
-            Arr::get($historyData, 'bundle_sid', ''),
-            Arr::get($historyData, 'object_sid', ''),
-            Arr::get($historyData, 'status', ''),
-            Arr::get($historyData, 'response', [])
+            Arr::get($historyData, 'bundle_sid'),
+            Arr::get($historyData, 'object_sid'),
+            Arr::get($historyData, 'status'),
+            Arr::get($historyData, 'response')
         );
     }
 

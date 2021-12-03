@@ -2,6 +2,7 @@
 
 namespace PerfectDayLlc\TwilioA2PBundle\Services;
 
+use Illuminate\Support\Str;
 use PerfectDayLlc\TwilioA2PBundle\Entities\ClientData;
 use PerfectDayLlc\TwilioA2PBundle\Entities\ClientRegistrationHistoryResponseData;
 use PerfectDayLlc\TwilioA2PBundle\Entities\Status;
@@ -204,7 +205,7 @@ class RegisterService
                             'first_name' => $client->getContactFirstname(),
                             'last_name' => $client->getContactLastname(),
                             'email' => $client->getContactEmail(),
-                            'phone_number' => $this->formatPhoneNumber($client->getContactPhone()),
+                            'phone_number' => $client->getContactPhone(),
                         ],
                     ]
                 );
@@ -922,19 +923,6 @@ class RegisterService
         }
 
         return preg_replace($regex, '', $name);
-    }
-
-    private function formatPhoneNumber($phoneNumber): string
-    {
-        $modifiedPhoneNumber = $this->friendlyName($phoneNumber, true, true);
-
-        if (substr($modifiedPhoneNumber, 0, 1) === '1') {
-            $modifiedPhoneNumber = '+'.$modifiedPhoneNumber;
-        } else {
-            $modifiedPhoneNumber = '+1'.$modifiedPhoneNumber;
-        }
-
-        return $modifiedPhoneNumber;
     }
 
     private function saveNewClientRegistrationHistory(ClientRegistrationHistoryResponseData $historyData): void

@@ -187,12 +187,26 @@ class RegisterClientsTest extends TestCase
      * @depends test_command_has_correct_data
      * @dataProvider createSmsCampaignAllowedStatusesProvider
      */
-    public function test_command_should_dispatch_a_create_a2p_sms_campaign_use_case_job_when_specific_request_type_is_found_and_one_day_passed(string $requestType): void
-    {
+    public function test_command_should_dispatch_a_create_a2p_sms_campaign_use_case_job_when_specific_request_type_is_found_and_one_day_passed(
+        string $originalRequestType,
+        array  $requiredHistoryRequestTypes
+    ): void {
+        foreach ($requiredHistoryRequestTypes as $requestType) {
+            $this->travel(1)->second();
+
+            $this->createRealClientRegistrationHistoryModel([
+                'entity_id' => $this->entity,
+                'request_type' => $requestType,
+                'status' => $this->faker()->randomElement(Status::getOngoingA2PStatuses()),
+            ]);
+        }
+
+        $this->travel(1)->second();
+
         $this->createRealClientRegistrationHistoryModel([
             'entity_id' => $this->entity,
-            'request_type' => $requestType,
-            'status' => $this->faker()->randomElement(Status::getOngoingA2PStatuses())
+            'request_type' => $originalRequestType,
+            'status' => $this->faker()->randomElement(Status::getOngoingA2PStatuses()),
         ]);
 
         $this->travel(1)->day();
@@ -239,8 +253,10 @@ class RegisterClientsTest extends TestCase
     public function createSmsCampaignAllowedStatusesProvider(): array
     {
         return [
-            'Create Messaging Service' => ['createMessagingService'],
-            'Add Phone Number to Messaging Service' => ['addPhoneNumberToMessagingService'],
+            'Add Phone Number to Messaging Service' => [
+                'addPhoneNumberToMessagingService',
+                ['createA2PBrand', 'createMessagingService'],
+            ],
         ];
     }
 

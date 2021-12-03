@@ -26,14 +26,9 @@ class TestCase extends BaseTestCase
 
     protected function createRealClientRegistrationHistoryModel(array $parameters = []): ClientRegistrationHistory
     {
-        /** @var ClientRegistrationHistory $model */
-        $model = ClientRegistrationHistory::create(
-            factory(ClientRegistrationHistoryFake::class)
-                ->make($parameters)
-                ->toArray()
-        );
-
-        return $model->fresh();
+        return factory(ClientRegistrationHistoryFake::class)
+                ->create($parameters)
+                ->fresh();
     }
 
     protected function createExpectedService(): RegisterService
