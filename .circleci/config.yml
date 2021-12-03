@@ -1,0 +1,133 @@
+version: 2.1
+
+orbs:
+  jira: circleci/jira@1.3.1
+
+workflows:
+  test_all_PHP_and_Laravel_versions:
+    jobs:
+      - tests:
+          context:
+            - Jira
+          post-steps:
+            - jira/notify
+          matrix:
+            parameters:
+              php: [php-74, php-80]
+              laravel: ["5.8", "6.0", "7.0", "8.0"]
+            exclude:
+              - php: "8.0"
+              - laravel: "5.8"
+
+executors:
+  php-74:
+    docker:
+      - image: circleci/php:7.4.6-node
+        environment:
+          DB_USERNAME: root
+          TZ: "/usr/share/zoneinfo/America/New_York"
+      - image: circleci/mysql:5.7.18
+        environment:
+          MYSQL_HOST: 127.0.0.1
+          MYSQL_ROOT_HOST: "%"
+          MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+          MYSQL_ROOT_PASSWORD: ''
+          MYSQL_DATABASE: unotifi_index
+          TZ: "/usr/share/zoneinfo/America/New_York"
+    resource_class: small
+  php-80:
+    docker:
+      - image: circleci/php:8.0.0-node
+        environment:
+          DB_USERNAME: root
+          TZ: "/usr/share/zoneinfo/America/New_York"
+      - image: circleci/mysql:5.7.18
+        environment:
+          MYSQL_HOST: 127.0.0.1
+          MYSQL_ROOT_HOST: "%"
+          MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+          MYSQL_ROOT_PASSWORD: ''
+          MYSQL_DATABASE: unotifi_index
+          TZ: "/usr/share/zoneinfo/America/New_York"
+    resource_class: small
+
+jobs:
+  tests:
+    parameters:
+      php:
+        type: executor
+      laravel:
+        type: string
+    executor: << parameters.php >>
+
+    environment:
+      TZ: "/usr/share/zoneinfo/America/New_York"
+
+    steps:
+      - checkout
+
+      - run:
+          name: Install libraries
+          command: |
+            sudo apt update
+            sudo apt install -y zlib1g-dev
+            sudo apt install -y libsqlite3-dev
+            sudo apt install -y libpng-dev
+            sudo apt install -y libjpeg-dev
+            sudo apt install -y libmcrypt-dev
+            sudo apt install -y libxml2-dev
+            sudo apt install -y zlib1g-dev
+            sudo apt install -y default-mysql-client
+            sudo apt install -y libfreetype6-dev
+
+      - run:
+          name: Install PHP extensions
+          command:
+            sudo -E docker-php-ext-install dom curl libxml zip mbstring soap pcntl bcmath sqlite pdo pdo_mysql pdo_sqlite intl calendar gd exif -j$(nproc) iconv imagick
+
+      - run:
+          name: Configure PHP extensions
+          command:
+            sudo docker-php-ext-configure gd --with-freetype --with-jpeg
+
+      - restore_cache:
+          key: v1-dependencies-{{ checksum "composer.json" }}-<< parameters.laravel >>
+
+      - run:
+          name: Install Composer dependencies
+          command: |
+            composer require "illuminate/contracts=^<< parameters.laravel >>" --no-update
+            composer update --prefer-dist --no-interaction --no-progress
+
+      - save_cache:
+          key: v1-dependencies-{{ checksum "composer.json" }}-<< parameters.laravel >>
+          paths:
+            - ./vendor
+
+      - restore_cache:
+          key: node-v1-{{ checksum "package.json" }}
+
+      - run:
+          name: Install NPM dependencies
+          command: yarn install
+
+      - save_cache:
+          key: node-v1-{{ checksum "package.json" }}
+          paths:
+            - ./node_modules
+
+      - run:
+          name: Build frontend assets
+          command: npm run prod
+
+      - run:
+          name: Run PHPUnit tests
+          command: |
+            mkdir -p ~/phpunit
+            ./vendor/bin/phpunit --configuration phpunit.xml --log-junit ~/phpunit/junit.xml
+
+      - store_test_results:
+          path: ~/phpunit
+
+      - store_artifacts:
+          path: ~/phpunit
