@@ -3,6 +3,7 @@
          xsi:noNamespaceSchemaLocation="./vendor/phpunit/phpunit/phpunit.xsd"
          bootstrap="vendor/autoload.php"
          colors="true"
+         printerClass="Sempro\PHPUnitPrettyPrinter\PrettyPrinterForPhpUnit9"
 >
     <coverage>
         <include>
@@ -24,5 +25,6 @@
         <env name="DB_HOST" value="mysql"/>
         <server name="DB_USERNAME" value="root"/>
         <server name="PERFECTDAYLLC_TWILIO_A2P_BUNDLE_ENTITY_MODEL" value="PerfectDayLlc\TwilioA2PBundle\Tests\Fake\Models\Entity"/>
+        <env name="PHPUNIT_PRETTY_PRINT_PROGRESS" value="true" />
     </php>
 </phpunit>
