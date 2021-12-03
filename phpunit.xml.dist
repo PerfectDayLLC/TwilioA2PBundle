@@ -25,6 +25,6 @@
         <env name="DB_HOST" value="mysql"/>
         <server name="DB_USERNAME" value="root"/>
         <server name="PERFECTDAYLLC_TWILIO_A2P_BUNDLE_ENTITY_MODEL" value="PerfectDayLlc\TwilioA2PBundle\Tests\Fake\Models\Entity"/>
-        <env name="PHPUNIT_PRETTY_PRINT_PROGRESS" value="true" />
+        <env name="PHPUNIT_PRETTY_PRINT_PROGRESS" value="true"/>
     </php>
 </phpunit>
