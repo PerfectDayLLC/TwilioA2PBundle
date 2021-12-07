@@ -82,7 +82,7 @@ jobs:
 
       - run:
           name: Install PHP extensions
-          command: sudo -E docker-php-ext-install dom curl libxml zip mbstring soap pcntl bcmath sqlite pdo pdo_mysql pdo_sqlite intl calendar gd exif -j$(nproc) iconv imagick
+          command: sudo -E docker-php-ext-install dom curl libxml zip mbstring soap pcntl bcmath pdo pdo_mysql intl calendar gd exif -j$(nproc) iconv imagick
 
       - run:
           name: Configure PHP extensions
