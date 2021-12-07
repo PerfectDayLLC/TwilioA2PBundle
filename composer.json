@@ -24,8 +24,7 @@
         "laravel/legacy-factories": "^1.1",
         "mockery/mockery": "^1.4.4",
         "orchestra/testbench": "^3.8|^4.0|^5.0|^6.0",
-        "phpunit/phpunit": "^9.5",
-        "sempro/phpunit-pretty-print": "^1.4"
+        "phpunit/phpunit": "^8.0|^9.5"
     },
     "autoload": {
         "psr-4": {
