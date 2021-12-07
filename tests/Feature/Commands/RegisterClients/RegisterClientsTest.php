@@ -10,6 +10,7 @@ use PerfectDayLlc\TwilioA2PBundle\Jobs\CreateA2PSmsCampaignUseCase;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\CreateMessagingService;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\SubmitA2PTrustBundle;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\SubmitCustomerProfileBundle;
+use PerfectDayLlc\TwilioA2PBundle\Models\ClientRegistrationHistory;
 use PerfectDayLlc\TwilioA2PBundle\Services\RegisterService;
 use PerfectDayLlc\TwilioA2PBundle\Tests\Fake\Models\Entity;
 use PerfectDayLlc\TwilioA2PBundle\Tests\TestCase;
@@ -86,7 +87,7 @@ class RegisterClientsTest extends TestCase
     /**
      * @depends test_command_has_correct_data
      */
-    public function test_command_should_dispatch_a_submit_a2p_trust_bundle_job_when_specific_request_type_is_found_and_one_day_passed(): void
+    public function test_command_should_dispatch_a_submit_a2p_trust_bundle_job_when_specific_request_type_is_found(): void
     {
         $this->createRealClientRegistrationHistoryModel([
             'entity_id' => $this->entity,
@@ -120,7 +121,7 @@ class RegisterClientsTest extends TestCase
     /**
      * @depends test_command_has_correct_data
      */
-    public function test_command_should_dispatch_a_create_a2p_brand_job_when_specific_request_type_is_found_and_one_day_passed(): void
+    public function test_command_should_dispatch_a_create_a2p_brand_job_when_specific_request_type_is_found(): void
     {
         $this->createRealClientRegistrationHistoryModel([
             'entity_id' => $this->entity,
@@ -153,7 +154,7 @@ class RegisterClientsTest extends TestCase
     /**
      * @depends test_command_has_correct_data
      */
-    public function test_command_should_dispatch_a_create_messaging_service_job_when_specific_request_type_is_found_and_one_day_passed(): void
+    public function test_command_should_dispatch_a_create_messaging_service_job_when_specific_request_type_is_found(): void
     {
         $this->createRealClientRegistrationHistoryModel([
             'entity_id' => $this->entity,
@@ -197,7 +198,7 @@ class RegisterClientsTest extends TestCase
             $this->createRealClientRegistrationHistoryModel([
                 'entity_id' => $this->entity,
                 'request_type' => $requestType,
-                'status' => $this->faker()->randomElement(Status::getOngoingA2PStatuses()),
+                'status' => $this->faker()->randomElement(ClientRegistrationHistory::ALLOWED_STATUSES_TYPES),
             ]);
         }
 
@@ -206,7 +207,7 @@ class RegisterClientsTest extends TestCase
         $this->createRealClientRegistrationHistoryModel([
             'entity_id' => $this->entity,
             'request_type' => $originalRequestType,
-            'status' => $this->faker()->randomElement(Status::getOngoingA2PStatuses()),
+            'status' => $this->faker()->randomElement(ClientRegistrationHistory::ALLOWED_STATUSES_TYPES),
         ]);
 
         $this->travel(1)->day();
@@ -263,7 +264,7 @@ class RegisterClientsTest extends TestCase
     public function clientRegistrationHistoriesNotAllowedStatusesProvider(): array
     {
         return collect(Status::getConstants())
-            ->diff(Status::getOngoingA2PStatuses())
+            ->diff(ClientRegistrationHistory::ALLOWED_STATUSES_TYPES)
             ->mapWithKeys(fn (string $status, string $key) => [str_headline($key) => [$status]])
             ->toArray();
     }

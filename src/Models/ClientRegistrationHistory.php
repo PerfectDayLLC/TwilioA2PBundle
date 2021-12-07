@@ -43,6 +43,15 @@ class ClientRegistrationHistory extends Model
 {
     use SoftDeletes;
 
+    public const ALLOWED_STATUSES_TYPES = [
+        Status::BUNDLES_PENDING_REVIEW,
+        Status::BUNDLES_IN_REVIEW,
+        Status::BUNDLES_TWILIO_APPROVED,
+        Status::BRAND_PENDING,
+        Status::BRAND_APPROVED,
+        Status::EXCEPTION_ERROR,
+    ];
+
     protected $table = 'twilio_a2p_registration_history';
 
     protected $fillable = [
@@ -106,18 +115,7 @@ class ClientRegistrationHistory extends Model
 
     public function scopeAllowedStatuses(Builder $query, array $types = []): Builder
     {
-        if (empty($types)) {
-            $types = [
-                Status::BUNDLES_PENDING_REVIEW,
-                Status::BUNDLES_IN_REVIEW,
-                Status::BUNDLES_TWILIO_APPROVED,
-                Status::BRAND_PENDING,
-                Status::BRAND_APPROVED,
-                Status::EXCEPTION_ERROR,
-            ];
-        }
-
-        return $query->whereIn('status', $types);
+        return $query->whereIn('status', empty($types) ? self::ALLOWED_STATUSES_TYPES : $types);
     }
 
     /**
