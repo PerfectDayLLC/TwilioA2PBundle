@@ -49,7 +49,7 @@ executors:
           MYSQL_ROOT_PASSWORD: ''
           MYSQL_DATABASE: unotifi_index
           TZ: "/usr/share/zoneinfo/America/New_York"
-    resource_class: small
+    resource_class: medium+
 
 jobs:
   tests:
@@ -88,6 +88,10 @@ jobs:
           name: Configure PHP extensions
           command: sudo docker-php-ext-configure gd --with-freetype --with-jpeg
 
+      - run:
+          name: Update composer version
+          command: composer self-update
+
       - restore_cache:
           key: v1-dependencies-{{ checksum "composer.json" }}-<< parameters.laravel >>
 
@@ -101,22 +105,6 @@ jobs:
           key: v1-dependencies-{{ checksum "composer.json" }}-<< parameters.laravel >>
           paths:
             - ./vendor
-
-      - restore_cache:
-          key: node-v1-{{ checksum "package.json" }}
-
-      - run:
-          name: Install NPM dependencies
-          command: yarn install
-
-      - save_cache:
-          key: node-v1-{{ checksum "package.json" }}
-          paths:
-            - ./node_modules
-
-      - run:
-          name: Build frontend assets
-          command: npm run prod
 
       - run:
           name: Run PHPUnit tests
