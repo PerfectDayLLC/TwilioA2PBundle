@@ -90,7 +90,7 @@ jobs:
 
       - run:
           name: Update composer version
-          command: root composer self-update --no-progress
+          command: sudo composer self-update --no-progress
 
       - restore_cache:
           key: v1-dependencies-{{ checksum "composer.json" }}-<< parameters.laravel >>
