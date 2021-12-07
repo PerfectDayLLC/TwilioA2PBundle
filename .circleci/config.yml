@@ -110,7 +110,7 @@ jobs:
           name: Run PHPUnit tests
           command: |
             mkdir -p ~/phpunit
-            ./vendor/bin/phpunit --configuration phpunit.xml --log-junit ~/phpunit/junit.xml
+            ./vendor/bin/phpunit --configuration phpunit.xml.dist --log-junit ~/phpunit/junit.xml
 
       - store_test_results:
           path: ~/phpunit
