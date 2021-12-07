@@ -24,6 +24,7 @@ executors:
     docker:
       - image: circleci/php:7.4.6-node
         environment:
+          DB_HOST: 127.0.0.1
           DB_USERNAME: root
           TZ: "/usr/share/zoneinfo/America/New_York"
       - image: circleci/mysql:5.7.18
@@ -39,6 +40,7 @@ executors:
     docker:
       - image: circleci/php:8.0.0-node
         environment:
+          DB_HOST: 127.0.0.1
           DB_USERNAME: root
           TZ: "/usr/share/zoneinfo/America/New_York"
       - image: circleci/mysql:5.7.18
