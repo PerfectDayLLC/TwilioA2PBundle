@@ -221,8 +221,6 @@ class RegisterClientsTest extends TestCase
             'create-a2p-sms-campaign-use-case-job',
             CreateA2PSmsCampaignUseCase::class,
             function (CreateA2PSmsCampaignUseCase $job) {
-                dump($job->client);
-                dump($this->entity->getClientData());
                 return $job->client == $this->entity->getClientData() &&
                        $job->registerService == $this->registerService;
             }
