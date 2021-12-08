@@ -31,9 +31,8 @@ executors:
         environment:
           MYSQL_HOST: 127.0.0.1
           MYSQL_ROOT_HOST: "%"
+          MYSQL_DATABASE: forge
           MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
-          MYSQL_ROOT_PASSWORD: ''
-          MYSQL_DATABASE: unotifi_index
           TZ: "/usr/share/zoneinfo/America/New_York"
     resource_class: small
   php-80:
@@ -47,9 +46,8 @@ executors:
         environment:
           MYSQL_HOST: 127.0.0.1
           MYSQL_ROOT_HOST: "%"
+          MYSQL_DATABASE: forge
           MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
-          MYSQL_ROOT_PASSWORD: ''
-          MYSQL_DATABASE: unotifi_index
           TZ: "/usr/share/zoneinfo/America/New_York"
     resource_class: medium+
 
