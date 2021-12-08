@@ -140,8 +140,8 @@ class RegisterClientsTest extends TestCase
             'create-a2p-brand-job',
             CreateA2PBrand::class,
             function (CreateA2pBrand $job) {
-                return $job->registerService == $this->registerService &&
-                       $job->client == ($this->entity->getClientData());
+                return $job->client == ($this->entity->getClientData()) &&
+                       $job->registerService == $this->registerService;
             }
         );
 
@@ -173,8 +173,8 @@ class RegisterClientsTest extends TestCase
             'create-messaging-service',
             CreateMessagingService::class,
             function (CreateMessagingService $job) {
-                return $job->registerService == $this->registerService &&
-                       $job->client == ($this->entity->getClientData());
+                return $job->client == ($this->entity->getClientData()) &&
+                       $job->registerService == $this->registerService;
             }
         );
 
@@ -221,6 +221,8 @@ class RegisterClientsTest extends TestCase
             'create-a2p-sms-campaign-use-case-job',
             CreateA2PSmsCampaignUseCase::class,
             function (CreateA2PSmsCampaignUseCase $job) {
+                dump($job->client);
+                dump($this->entity->getClientData());
                 return $job->client == $this->entity->getClientData() &&
                        $job->registerService == $this->registerService;
             }
