@@ -16,7 +16,7 @@ workflows:
               php: [php-74, php-80]
               laravel: ["5.8", "6.0", "7.0", "8.0"]
             exclude:
-              - php: php-80
+              - php: "php-80"
               - laravel: "5.8"
 
 executors:
