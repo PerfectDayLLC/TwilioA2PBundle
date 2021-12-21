@@ -57,7 +57,7 @@ class ClientRegistrationHistoryResponseData
         );
     }
 
-    public function getBundleSid(): string
+    public function getBundleSid(): ?string
     {
         return $this->bundleSid;
     }

@@ -871,6 +871,8 @@ class RegisterService
                 ClientRegistrationHistoryResponseData::createFromArray([
                     'entity_id' => $client->getId(),
                     'request_type' => __FUNCTION__,
+                    'bundle_sid' => $a2PBrandSid,
+                    'object_sid' => $messagingServiceSid,
                     'status' => Status::EXCEPTION_ERROR,
                     'response' => $this->exceptionToArray($exception),
                     'error' => true,
