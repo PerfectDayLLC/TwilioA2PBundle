@@ -111,7 +111,7 @@ class ClientRegistrationHistory extends Model
         /** @var Model $entityModel */
         $entityModel = new $entityModelString;
 
-        return $this->belongsTo($entityModelString, $entityModel->getKeyName());
+        return $this->belongsTo($entityModelString, 'entity_id', $entityModel->getKeyName());
     }
 
     public function scopeAllowedStatuses(Builder $query, array $types = []): Builder
