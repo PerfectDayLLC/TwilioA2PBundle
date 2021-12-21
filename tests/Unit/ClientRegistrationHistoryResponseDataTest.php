@@ -2,6 +2,7 @@
 
 namespace PerfectDayLlc\TwilioA2PBundle\Tests\Unit;
 
+use Illuminate\Support\Str;
 use PerfectDayLlc\TwilioA2PBundle\Entities\ClientRegistrationHistoryResponseData;
 use PerfectDayLlc\TwilioA2PBundle\Tests\Fake\Models\ClientRegistrationHistory;
 use PerfectDayLlc\TwilioA2PBundle\Tests\TestCase;
@@ -12,7 +13,7 @@ class ClientRegistrationHistoryResponseDataTest extends TestCase
      * @testWith [false]
      *           [true]
      */
-    public function test_client_registration_history_response_data_getters(bool $error): void
+    public function test_getters(bool $error): void
     {
         /** @var ClientRegistrationHistory $fakeData */
         $fakeData = factory(ClientRegistrationHistory::class)->make();
@@ -43,7 +44,7 @@ class ClientRegistrationHistoryResponseDataTest extends TestCase
      * @depends test_client_registration_history_response_data_getters
      * @dataProvider arrayDataSetterProvider
      */
-    public function test_client_registration_history_response_data_setters(string $field, $value, string $getter): void
+    public function test_setters(string $field, $value, string $getter): void
     {
         $clientRegistrationHistoryResponseData = ClientRegistrationHistoryResponseData::createFromArray([
             $field => $value
@@ -53,6 +54,19 @@ class ClientRegistrationHistoryResponseDataTest extends TestCase
             $value,
             $clientRegistrationHistoryResponseData->$getter(),
             "The getter '$getter' is not returning what is expected for field '$field'"
+        );
+    }
+
+    public function test_status_is_case_insensitive(): void
+    {
+        $clientRegistrationHistoryResponseData = ClientRegistrationHistoryResponseData::createFromArray([
+            'status' => $status = 'SomE_StaTUs-WORKiNg'
+        ]);
+
+        $this->assertSame(
+            Str::lower($status),
+            $clientRegistrationHistoryResponseData->getStatus(),
+            "The status is not being lowercase."
         );
     }
 

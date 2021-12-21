@@ -3,6 +3,7 @@
 namespace PerfectDayLlc\TwilioA2PBundle\Entities;
 
 use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 
 class ClientRegistrationHistoryResponseData
 {
@@ -40,7 +41,7 @@ class ClientRegistrationHistoryResponseData
         $this->error = $error;
         $this->bundleSid = $bundleSid;
         $this->objectSid = $objectSid;
-        $this->status = $status;
+        $this->status = Str::lower($status);
         $this->response = $response;
     }
 
