@@ -50,6 +50,7 @@ class ClientRegistrationHistory extends Model
         Status::BRAND_PENDING,
         Status::BRAND_APPROVED,
         Status::EXCEPTION_ERROR,
+        Status::EXECUTED,
     ];
 
     protected $table = 'twilio_a2p_registration_history';

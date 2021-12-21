@@ -112,6 +112,7 @@ class ClientRegistrationHistoryTest extends TestCase
             'Brand Pending' => [Status::BRAND_PENDING],
             'Brand Approved' => [Status::BRAND_APPROVED],
             'Error' => [Status::EXCEPTION_ERROR],
+            'Executed' => [Status::EXECUTED],
         ];
     }
 }
