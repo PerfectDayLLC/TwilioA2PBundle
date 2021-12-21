@@ -13,6 +13,7 @@ use PerfectDayLlc\TwilioA2PBundle\Jobs\CreateA2PSmsCampaignUseCase;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\CreateMessagingService;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\SubmitA2PTrustBundle;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\SubmitCustomerProfileBundle;
+use PerfectDayLlc\TwilioA2PBundle\Models\ClientRegistrationHistory;
 use PerfectDayLlc\TwilioA2PBundle\Services\RegisterService;
 
 class RegisterClients extends Command
@@ -36,11 +37,14 @@ class RegisterClients extends Command
             ->orWhereDoesntHave('twilioA2PClientRegistrationHistories');
 
         foreach ($unregisteredClients->cursor() as $entity) {
+            /** @var ClientRegistrationHistory|null $history */
+            $history = $entity->twilioA2PClientRegistrationHistories->last();
+
             /** @var ClientRegistrationHistoryContract $entity */
             $client = $entity->getClientData();
 
             // Create and Submit Customer Profile if company has never been registered
-            if (! ($client->getClientRegistrationHistoryModel()->status ?? false)) {
+            if (! ($history->status ?? false)) {
                 dispatch(new SubmitCustomerProfileBundle($service, $client))
                     ->onQueue('submit-customer-profile-bundle');
 
@@ -54,7 +58,7 @@ class RegisterClients extends Command
              * TODO: checking the documentation, it does not explicitly say if we should continue or not
              * so I am assuming we need to receive a Status::BUNDLES_TWILIO_APPROVED to continue here.
              */
-            if ($client->getClientRegistrationHistoryModel()->request_type ===
+            if ($history->request_type ===
                 RegisterClientsMethodsSignatureEnum::SUBMIT_CUSTOMER_PROFILE_BUNDLE
             ) {
                 // Create Submit A2P Profile Job
@@ -62,7 +66,7 @@ class RegisterClients extends Command
                     new SubmitA2PTrustBundle(
                         $service,
                         $client,
-                        $client->getClientRegistrationHistoryModel()->bundle_sid ?? null
+                        $history->bundle_sid ?? null
                     )
                 )
                     ->onQueue('submit-a2p-profile-bundle');
@@ -76,7 +80,7 @@ class RegisterClients extends Command
              * Documentation says that after previous step was done (Status::BUNDLES_PENDING_REVIEW sent)
              * we can immediately create the A2P Brand.
              */
-            if ($client->getClientRegistrationHistoryModel()->request_type ===
+            if ($history->request_type ===
                 RegisterClientsMethodsSignatureEnum::SUBMIT_A2P_PROFILE_BUNDLE
             ) {
                 dispatch(new CreateA2PBrand($service, $client))
@@ -86,7 +90,7 @@ class RegisterClients extends Command
             }
 
             // If Create A2p Sms Campaign Use Case
-            if ($client->getClientRegistrationHistoryModel()->request_type ===
+            if ($history->request_type ===
                 RegisterClientsMethodsSignatureEnum::CREATE_A2P_BRAND
             ) {
                 dispatch(new CreateMessagingService($service, $client))
@@ -95,12 +99,12 @@ class RegisterClients extends Command
                 continue;
             }
 
-            if ($client->getClientRegistrationHistoryModel()->created_at->diffInDays() < 1) {
+            if ($history->created_at->diffInDays() < 1) {
                 continue;
             }
 
             // If Create A2P SMS Campaign use case
-            if ($client->getClientRegistrationHistoryModel()->request_type ===
+            if ($history->request_type ===
                 RegisterClientsMethodsSignatureEnum::ADD_PHONE_NUMBER_TO_MESSAGING_SERVICE
             ) {
                 //Create A2p Sms Campaign UseCase Job

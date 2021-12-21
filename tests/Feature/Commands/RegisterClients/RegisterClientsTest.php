@@ -89,7 +89,7 @@ class RegisterClientsTest extends TestCase
      */
     public function test_command_should_dispatch_a_submit_a2p_trust_bundle_job_when_specific_request_type_is_found(): void
     {
-        $this->createRealClientRegistrationHistoryModel([
+        $history = $this->createRealClientRegistrationHistoryModel([
             'entity_id' => $this->entity,
             'request_type' => 'submitCustomerProfileBundle',
             'status' => $this->faker()->randomElement(Status::getOngoingA2PStatuses())
@@ -105,10 +105,10 @@ class RegisterClientsTest extends TestCase
         Queue::assertPushedOn(
             'submit-a2p-profile-bundle',
             SubmitA2PTrustBundle::class,
-            function (SubmitA2PTrustBundle $job) {
-                return $job->client == ($clientData = $this->entity->getClientData()) &&
+            function (SubmitA2PTrustBundle $job) use ($history) {
+                return $job->client == $this->entity->getClientData() &&
                        $job->registerService == $this->registerService &&
-                       $job->customerProfileBundleSid === $clientData->getClientRegistrationHistoryModel()->bundle_sid;
+                       $job->customerProfileBundleSid === $history->bundle_sid;
             }
         );
 

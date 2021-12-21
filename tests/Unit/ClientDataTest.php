@@ -4,21 +4,12 @@ namespace PerfectDayLlc\TwilioA2PBundle\Tests\Unit;
 
 use PerfectDayLlc\TwilioA2PBundle\Entities\ClientData;
 use PerfectDayLlc\TwilioA2PBundle\Entities\ClientOwnerData;
-use PerfectDayLlc\TwilioA2PBundle\Tests\Fake\Models\ClientRegistrationHistory;
 use PerfectDayLlc\TwilioA2PBundle\Tests\TestCase;
 
 class ClientDataTest extends TestCase
 {
-    /**
-     * @testWith [true]
-     *           [false]
-     */
-    public function test_correct_data_is_returned(bool $withClientRegistrationHistoryModel): void
+    public function test_correct_data_is_returned(): void
     {
-        $clientRegistrationHistory = $withClientRegistrationHistoryModel
-            ? factory(ClientRegistrationHistory::class)->create()
-            : null;
-
         $clientData = new ClientData(
             $id = ($this->faker()->randomDigit() + 1),
             $companyName = 'John Doe Dealer',
@@ -40,8 +31,7 @@ class ClientDataTest extends TestCase
                 $contactName,
                 $contactSurname,
                 $contactEmail
-            ),
-            $clientRegistrationHistory,
+            )
         );
 
         $this->assertSame($id, $clientData->getId());
@@ -63,8 +53,6 @@ class ClientDataTest extends TestCase
         $this->assertSame($fallbackWebhookUrl, $clientData->getFallbackWebhookUrl());
 
         $this->assertSame($clientOwnerData, $clientData->getClientOwnerData());
-
-        $this->assertSame($clientRegistrationHistory, $clientData->getClientRegistrationHistoryModel());
     }
 
     /**
@@ -94,8 +82,7 @@ class ClientDataTest extends TestCase
                 $contactFirstName,
                 $contactLastName,
                 $contactEmail
-            ),
-            null,
+            )
         );
 
         $this->assertSame(

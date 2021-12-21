@@ -3,7 +3,6 @@
 namespace PerfectDayLlc\TwilioA2PBundle\Entities;
 
 use Illuminate\Support\Str;
-use PerfectDayLlc\TwilioA2PBundle\Models\ClientRegistrationHistory;
 
 class ClientData
 {
@@ -50,8 +49,6 @@ class ClientData
 
     private ClientOwnerData $clientOwnerData;
 
-    private ?ClientRegistrationHistory $clientRegistrationHistoryModel;
-
     /**
      * @param  string|int  $id
      * @param  string  $region State or Province
@@ -73,8 +70,7 @@ class ClientData
         string $contactPhone,
         string $webhookUrl,
         string $fallbackWebhookUrl,
-        ClientOwnerData $clientOwnerData,
-        ?ClientRegistrationHistory $clientRegistrationHistoryModel
+        ClientOwnerData $clientOwnerData
     ) {
         $this->id = $id;
         $this->companyName = $companyName;
@@ -93,7 +89,6 @@ class ClientData
         $this->webhookUrl = $webhookUrl;
         $this->fallbackWebhookUrl = $fallbackWebhookUrl;
         $this->clientOwnerData = $clientOwnerData;
-        $this->clientRegistrationHistoryModel = $clientRegistrationHistoryModel;
     }
 
     private function formatPhoneNumber($phoneNumber): string
@@ -191,10 +186,5 @@ class ClientData
     public function getClientOwnerData(): ClientOwnerData
     {
         return $this->clientOwnerData;
-    }
-
-    public function getClientRegistrationHistoryModel(): ?ClientRegistrationHistory
-    {
-        return $this->clientRegistrationHistoryModel;
     }
 }
