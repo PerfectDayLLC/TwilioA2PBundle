@@ -63,7 +63,7 @@ class ClientRegistrationHistoryTest extends TestCase
             'created_at' => now()->minutes(-2)
         ]);
 
-        $latestBundleSid = ClientRegistrationHistoryFake::getBundleSidForAllowedStatuses(
+        $latestBundleSid = ClientRegistrationHistoryFake::getSidForAllowedStatuses(
             'messageService',
             $entity->id
         );
@@ -95,7 +95,7 @@ class ClientRegistrationHistoryTest extends TestCase
                 'created_at' => now()->minutes(-2)
             ]);
 
-        $latestBundleSid = ClientRegistrationHistoryFake::getBundleSidForAllowedStatuses(
+        $latestBundleSid = ClientRegistrationHistoryFake::getSidForAllowedStatuses(
             'messageService',
             $entity->id
         );

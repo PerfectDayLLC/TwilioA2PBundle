@@ -121,7 +121,7 @@ class ClientRegistrationHistory extends Model
     /**
      * @param  string|int|null  $entityId
      */
-    public static function getBundleSidForAllowedStatuses(string $requestType, $entityId = null): ?string
+    public static function getSidForAllowedStatuses(string $requestType, $entityId = null, bool $isBundle = true): ?string
     {
         /** @var static $self */
         $self = static::allowedStatuses()
@@ -130,6 +130,6 @@ class ClientRegistrationHistory extends Model
             ->latest()
             ->first();
 
-        return $self->bundle_sid ?? null;
+        return $self ? ($isBundle ? $self->bundle_sid : $self->object_sid) : null;
     }
 }
