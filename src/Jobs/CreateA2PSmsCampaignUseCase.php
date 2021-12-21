@@ -22,7 +22,8 @@ class CreateA2PSmsCampaignUseCase extends AbstractMainJob
 
         $this->a2PBrandSid = ClientRegistrationHistory::getSidForAllowedStatuses(
             RegisterClientsMethodsSignatureEnum::CREATE_A2P_BRAND,
-            $client->getId()
+            $client->getId(),
+            false
         );
 
         $this->messagingServiceSid = ClientRegistrationHistory::getSidForAllowedStatuses(
