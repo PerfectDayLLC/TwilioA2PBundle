@@ -28,17 +28,22 @@ class RegisterClients extends Command
         $entityNamespaceModel = config('twilioa2pbundle.entity_model');
 
         // Get Unregistered Clients query
-        $unregisteredClients = $entityNamespaceModel::with('twilioA2PClientRegistrationHistories')
-            ->whereHas('twilioA2PClientRegistrationHistories', function (Builder $query) {
+        $unregisteredClients = $entityNamespaceModel::whereHas(
+            'twilioA2PClientRegistrationHistories',
+            function (Builder $query) {
                 return $query->whereNull('status')
                     ->orWhereIn('status', Status::getOngoingA2PStatuses())
                     ->where('error', false);
-            })
+            }
+        )
             ->orWhereDoesntHave('twilioA2PClientRegistrationHistories');
 
         foreach ($unregisteredClients->cursor() as $entity) {
-            /** @var ClientRegistrationHistory|null $history */
-            $history = $entity->twilioA2PClientRegistrationHistories->last();
+            /**
+             * @var ClientRegistrationHistoryContract $entity
+             * @var ClientRegistrationHistory|null $history
+             */
+            $history = $entity->twilioA2PClientRegistrationHistories()->where('error', false)->latest()->first();
 
             /** @var ClientRegistrationHistoryContract $entity */
             $client = $entity->getClientData();
