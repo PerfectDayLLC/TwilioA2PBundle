@@ -132,6 +132,6 @@ class RegisterClients extends Command
             }
         }
 
-        return self::SUCCESS;
+        return 0;
     }
 }
