@@ -18,25 +18,39 @@ use PerfectDayLlc\TwilioA2PBundle\Services\RegisterService;
 
 class RegisterClients extends Command
 {
+    public const CREATE_A2P_BRAND_JOB_QUEUE = 'create-a2p-brand-job';
+
+    public const CREATE_A2P_SMS_CAMPAIGN_USE_CASE_JOB_QUEUE = 'create-a2p-sms-campaign-use-case-job';
+
+    public const CREATE_MESSAGING_SERVICE_QUEUE = 'create-messaging-service';
+
+    public const SUBMIT_A2P_PROFILE_BUNDLE_QUEUE = 'submit-a2p-profile-bundle';
+
+    public const SUBMIT_CUSTOMER_PROFILE_BUNDLE_QUEUE = 'submit-customer-profile-bundle';
+
     protected $signature = 'a2p:client-register';
 
     protected $description = 'Twilio - Register all companies for the A2P 10DLC US carrier standard compliance';
 
     public function handle(RegisterService $service): int
     {
-        /** @var Model $entityNamespaceModel */
+        /** @var Model|ClientRegistrationHistoryContract $entityNamespaceModel */
         $entityNamespaceModel = config('twilioa2pbundle.entity_model');
 
         // Get Unregistered Clients query
-        $unregisteredClients = $entityNamespaceModel::whereHas(
-            'twilioA2PClientRegistrationHistories',
-            function (Builder $query) {
-                return $query->whereNull('status')
-                    ->orWhereIn('status', Status::getOngoingA2PStatuses())
-                    ->where('error', false);
-            }
-        )
-            ->orWhereDoesntHave('twilioA2PClientRegistrationHistories');
+        $unregisteredClients = $entityNamespaceModel::where(function (Builder $query) {
+            return $query->whereHas(
+                'twilioA2PClientRegistrationHistories',
+                function (Builder $query) {
+                    return $query->whereNull('status')
+                        ->orWhereIn('status', Status::getOngoingA2PStatuses())
+                        ->where('error', false);
+                }
+            )
+                ->orWhereDoesntHave('twilioA2PClientRegistrationHistories');
+        });
+
+        $unregisteredClients = $entityNamespaceModel::customTwilioA2PFiltering($unregisteredClients);
 
         foreach ($unregisteredClients->cursor() as $entity) {
             /**
@@ -51,7 +65,7 @@ class RegisterClients extends Command
             // Create and Submit Customer Profile if company has never been registered
             if (! ($history->status ?? false)) {
                 dispatch(new SubmitCustomerProfileBundle($service, $client))
-                    ->onQueue('submit-customer-profile-bundle');
+                    ->onQueue(self::SUBMIT_CUSTOMER_PROFILE_BUNDLE_QUEUE);
 
                 continue;
             }
@@ -74,7 +88,7 @@ class RegisterClients extends Command
                         $history->bundle_sid ?? null
                     )
                 )
-                    ->onQueue('submit-a2p-profile-bundle');
+                    ->onQueue(self::SUBMIT_A2P_PROFILE_BUNDLE_QUEUE);
 
                 continue;
             }
@@ -89,7 +103,7 @@ class RegisterClients extends Command
                 RegisterClientsMethodsSignatureEnum::SUBMIT_A2P_PROFILE_BUNDLE
             ) {
                 dispatch(new CreateA2PBrand($service, $client))
-                    ->onQueue('create-a2p-brand-job');
+                    ->onQueue(self::CREATE_A2P_BRAND_JOB_QUEUE);
 
                 continue;
             }
@@ -99,7 +113,7 @@ class RegisterClients extends Command
                 RegisterClientsMethodsSignatureEnum::CREATE_A2P_BRAND
             ) {
                 dispatch(new CreateMessagingService($service, $client))
-                    ->onQueue('create-messaging-service');
+                    ->onQueue(self::CREATE_MESSAGING_SERVICE_QUEUE);
 
                 continue;
             }
@@ -114,10 +128,10 @@ class RegisterClients extends Command
             ) {
                 //Create A2p Sms Campaign UseCase Job
                 dispatch(new CreateA2PSmsCampaignUseCase($service, $client))
-                    ->onQueue('create-a2p-sms-campaign-use-case-job');
+                    ->onQueue(self::CREATE_A2P_SMS_CAMPAIGN_USE_CASE_JOB_QUEUE);
             }
         }
 
-        return 0;
+        return self::SUCCESS;
     }
 }
