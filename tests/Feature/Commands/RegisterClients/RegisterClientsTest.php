@@ -293,6 +293,11 @@ class RegisterClientsTest extends TestCase
         Queue::assertNothingPushed();
     }
 
+    public function test_the_current_loop_is_skipped_when_an_exception_is_thrown(): void
+    {
+        $this->markTestSkipped('Need to add test case when an exception is throw on the loop');
+    }
+
     public function createSmsCampaignAllowedStatusesProvider(): array
     {
         return [
