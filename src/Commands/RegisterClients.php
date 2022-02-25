@@ -135,7 +135,7 @@ class RegisterClients extends Command
                 }
             } catch (Throwable $exception) {
                 Log::error(
-                    "Error when processing an entity: $exception->getMessage()",
+                    "Error when processing an entity: {$exception->getMessage()}",
                     $entity->toArray()
                 );
 
