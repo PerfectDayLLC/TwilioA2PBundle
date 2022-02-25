@@ -2,6 +2,7 @@
 
 namespace PerfectDayLlc\TwilioA2PBundle\Tests\Feature\Commands\RegisterClients;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Queue;
 use PerfectDayLlc\TwilioA2PBundle\Commands\RegisterClients;
 use PerfectDayLlc\TwilioA2PBundle\Entities\Status;
@@ -17,6 +18,24 @@ use PerfectDayLlc\TwilioA2PBundle\Tests\TestCase;
 
 class RegisterClientsTest extends TestCase
 {
+    private const ENTITIY_DATA = [
+        'company_name' => 'test company',
+        'address' => 'Address 123 A',
+        'city' => 'Tampa',
+        'state' => 'FL',
+        'zip' => '33603',
+        'country' => 'US',
+        'phone_number' => '+11234567789',
+        'twilio_phone_number_sid' => 'PN5Y2SFD389D6123AK',
+        'website' => 'https://fake.url.com',
+        'contact_first_name' => 'John',
+        'contact_last_name' => 'Doe',
+        'contact_email' => 'john.doe@gmail.net',
+        'contact_phone' => '+11234567777',
+        'webhook_url' => 'https://webhook.url/123/abc',
+        'fallback_webhook_url' => 'https://fallbackwebhook.url/abc/123',
+    ];
+
     private RegisterService $registerService;
 
     private Entity $entity;
@@ -28,24 +47,15 @@ class RegisterClientsTest extends TestCase
         $this->registerService = $this->createExpectedService();
 
         /** @var Entity $entity */
-        $entity = factory(Entity::class)->create([
-            'company_name' => 'test company',
-            'address' => 'Address 123 A',
-            'city' => 'Tampa',
-            'state' => 'FL',
-            'zip' => '33603',
-            'country' => 'US',
-            'phone_number' => '+11234567789',
-            'twilio_phone_number_sid' => 'PN5Y2SFD389D6123AK',
-            'website' => 'https://fake.url.com',
-            'contact_first_name' => 'John',
-            'contact_last_name' => 'Doe',
-            'contact_email' => 'john.doe@gmail.net',
-            'contact_phone' => '+11234567777',
-            'webhook_url' => 'https://webhook.url/123/abc',
-            'fallback_webhook_url' => 'https://fallbackwebhook.url/abc/123',
-        ]);
+        $entity = factory(Entity::class)->create(self::ENTITIY_DATA);
         $this->entity = $entity;
+    }
+
+    protected function tearDown(): void
+    {
+        Entity::$customQuery = null;
+
+        parent::tearDown();
     }
 
     public function test_command_has_correct_data(): void
@@ -87,7 +97,7 @@ class RegisterClientsTest extends TestCase
     /**
      * @depends test_command_has_correct_data
      */
-    public function test_command_should_dispatch_a_submit_a2p_trust_bundle_job_when_specific_request_type_is_found(): void
+    public function test_command_should_dispatch_submit_a2p_trust_bundle_job_when_specific_request_type_is_found(): void
     {
         $history = $this->createRealClientRegistrationHistoryModel([
             'entity_id' => $this->entity,
@@ -121,7 +131,7 @@ class RegisterClientsTest extends TestCase
     /**
      * @depends test_command_has_correct_data
      */
-    public function test_command_should_dispatch_a_create_a2p_brand_job_when_specific_request_type_is_found(): void
+    public function test_command_should_dispatch_create_a2p_brand_job_when_specific_request_type_is_found(): void
     {
         $this->createRealClientRegistrationHistoryModel([
             'entity_id' => $this->entity,
@@ -154,7 +164,7 @@ class RegisterClientsTest extends TestCase
     /**
      * @depends test_command_has_correct_data
      */
-    public function test_command_should_dispatch_a_create_messaging_service_job_when_specific_request_type_is_found(): void
+    public function test_command_should_dispatch_create_messaging_service_job_when_specific_request_type_is_found(): void
     {
         $this->createRealClientRegistrationHistoryModel([
             'entity_id' => $this->entity,
@@ -188,7 +198,7 @@ class RegisterClientsTest extends TestCase
      * @depends test_command_has_correct_data
      * @dataProvider createSmsCampaignAllowedStatusesProvider
      */
-    public function test_command_should_dispatch_a_create_a2p_sms_campaign_use_case_job_when_specific_request_type_is_found_and_one_day_passed(
+    public function test_command_should_dispatch_create_a2p_sms_campaign_use_case_job_when_specific_request_type_is_found_and_one_day_passed(
         string $originalRequestType,
         array  $requiredHistoryRequestTypes
     ): void {
@@ -233,11 +243,43 @@ class RegisterClientsTest extends TestCase
     }
 
     /**
+     * @depends test_command_should_dispatch_a_customer_profile_creation_job_when_there_is_no_entity_history
+     */
+    public function test_command_should_dispatch_a_job_for_a_desired_entity_using_a_custom_extra_query(): void
+    {
+        Queue::fake();
+
+        /** @var Entity $entity */
+        $entity = factory(Entity::class)->create(
+            array_merge(self::ENTITIY_DATA, ['company_name' => $name = 'desired name'])
+        );
+
+        $entity::$customQuery = function (Builder $query) use ($name) {
+            return $query->where('company_name', $name);
+        };
+
+        $this->artisan(RegisterClients::class)
+            ->assertExitCode(0);
+
+        Queue::assertPushed(SubmitCustomerProfileBundle::class, 1);
+
+        Queue::assertPushedOn(
+            'submit-customer-profile-bundle',
+            SubmitCustomerProfileBundle::class,
+            function (SubmitCustomerProfileBundle $job) use ($entity) {
+                return $job->client == $entity->getClientData() &&
+                       $job->registerService == $this->registerService;
+            }
+        );
+    }
+
+    /**
      * @depends test_command_has_correct_data
      * @dataProvider clientRegistrationHistoriesNotAllowedStatusesProvider
      */
-    public function test_command_should_not_dispatch_any_job_when_the_status_is_not_one_of_the_allowed_ones(string $status): void
-    {
+    public function test_command_should_not_dispatch_any_job_when_the_status_is_not_one_of_the_allowed_ones(
+        string $status
+    ): void {
         Queue::fake();
 
         $this->createRealClientRegistrationHistoryModel([
@@ -249,6 +291,11 @@ class RegisterClientsTest extends TestCase
             ->assertExitCode(0);
 
         Queue::assertNothingPushed();
+    }
+
+    public function test_the_current_loop_is_skipped_when_an_exception_is_thrown(): void
+    {
+        $this->markTestSkipped('Need to add test case when an exception is throw on the loop');
     }
 
     public function createSmsCampaignAllowedStatusesProvider(): array

@@ -2,6 +2,7 @@
 
 namespace PerfectDayLlc\TwilioA2PBundle\Tests\Fake\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use PerfectDayLlc\TwilioA2PBundle\Contracts\ClientRegistrationHistory as ClientRegistrationHistoryContract;
@@ -31,6 +32,13 @@ use PerfectDayLlc\TwilioA2PBundle\Models\ClientRegistrationHistory;
  */
 class Entity extends Model implements ClientRegistrationHistoryContract
 {
+    public static $customQuery = null;
+
+    public static function customTwilioA2PFiltering(Builder $query): Builder
+    {
+        return self::$customQuery ? (self::$customQuery)($query) : $query;
+    }
+
     public function twilioA2PClientRegistrationHistories(): HasMany
     {
         return $this->hasMany(ClientRegistrationHistory::class);
@@ -43,11 +51,6 @@ class Entity extends Model implements ClientRegistrationHistoryContract
             $this->contact_last_name,
             $this->contact_email
         );
-
-        /** @var ClientRegistrationHistory|null $clientRegistrationHistory */
-        $clientRegistrationHistory = $this->twilioA2PClientRegistrationHistories()
-            ->latest()
-            ->first();
 
         return new ClientData(
             $this->id,
@@ -66,8 +69,7 @@ class Entity extends Model implements ClientRegistrationHistoryContract
             $this->contact_phone,
             $this->webhook_url,
             $this->fallback_webhook_url,
-            $clientOwnerData,
-            $clientRegistrationHistory
+            $clientOwnerData
         );
     }
 }

@@ -16,6 +16,7 @@ You have to implement `PerfectDayLlc\TwilioA2P\Contracts\ClientRegistrationHisto
 * `getClientData` will be used to return a `PerfectDayLlc\TwilioA2PBundle\Entities\ClientData` instance with desired
 information already set.
 * `twilioA2PClientRegistrationHistories` is the relation's name we will use to go back and forth with the history data.
+* `customTwilioA2PFiltering` is used to give the user the ability to add custom filtering when getting the entity model.
 
 You will also need to edit the `config\perfectdayllc\twilioa2pbundle.php` config file:
 * `entity_model` will be used to point to your main System's entity holder (use namespace).
