@@ -293,6 +293,15 @@ class RegisterClientsTest extends TestCase
         Queue::assertNothingPushed();
     }
 
+    /**
+     * @depends test_command_should_dispatch_a_customer_profile_creation_job_when_there_is_no_entity_history
+     * @depends test_command_should_dispatch_submit_a2p_trust_bundle_job_when_specific_request_type_is_found
+     * @depends test_command_should_dispatch_create_a2p_brand_job_when_specific_request_type_is_found
+     * @depends test_command_should_dispatch_create_messaging_service_job_when_specific_request_type_is_found
+     * @depends test_command_should_dispatch_create_a2p_sms_campaign_use_case_job_when_specific_request_type_is_found_and_one_day_passed
+     * @depends test_command_should_dispatch_a_job_for_a_desired_entity_using_a_custom_extra_query
+     * @depends test_command_should_not_dispatch_any_job_when_the_status_is_not_one_of_the_allowed_ones
+     */
     public function test_the_current_loop_is_skipped_when_an_exception_is_thrown(): void
     {
         Queue::fake();
