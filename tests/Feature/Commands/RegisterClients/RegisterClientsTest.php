@@ -4,6 +4,7 @@ namespace PerfectDayLlc\TwilioA2PBundle\Tests\Feature\Commands\RegisterClients;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Str;
 use PerfectDayLlc\TwilioA2PBundle\Commands\RegisterClients;
 use PerfectDayLlc\TwilioA2PBundle\Entities\Status;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\CreateA2PBrand;
@@ -46,9 +47,7 @@ class RegisterClientsTest extends TestCase
 
         $this->registerService = $this->createExpectedService();
 
-        /** @var Entity $entity */
-        $entity = factory(Entity::class)->create(self::ENTITIY_DATA);
-        $this->entity = $entity;
+        $this->entity = factory(Entity::class)->create(self::ENTITIY_DATA)->fresh();
     }
 
     protected function tearDown(): void
@@ -66,7 +65,8 @@ class RegisterClientsTest extends TestCase
         $this->assertSame(
             'Twilio - Register all companies for the A2P 10DLC US carrier standard compliance',
             $command->getDescription(),
-            'Wrong description');
+            'Wrong description'
+        );
     }
 
     /**
@@ -295,7 +295,30 @@ class RegisterClientsTest extends TestCase
 
     public function test_the_current_loop_is_skipped_when_an_exception_is_thrown(): void
     {
-        $this->markTestSkipped('Need to add test case when an exception is throw on the loop');
+        Queue::fake();
+
+        // Faking empty property, so it throws an exception when used on the ClientData entity
+        factory(Entity::class)->create(
+            array_merge(self::ENTITIY_DATA, ['contact_first_name' => null])
+        );
+
+        $this->artisan(RegisterClients::class)
+            ->assertExitCode(0);
+
+        Queue::assertPushed(SubmitCustomerProfileBundle::class, 1);
+        Queue::assertPushedOn(
+            'submit-customer-profile-bundle',
+            SubmitCustomerProfileBundle::class,
+            function (SubmitCustomerProfileBundle $job) {
+                return $job->client == $this->entity->getClientData() &&
+                       $job->registerService == $this->registerService;
+            }
+        );
+
+        Queue::assertNotPushed(SubmitA2PTrustBundle::class);
+        Queue::assertNotPushed(CreateA2PBrand::class);
+        Queue::assertNotPushed(CreateMessagingService::class);
+        Queue::assertNotPushed(CreateA2PSmsCampaignUseCase::class);
     }
 
     public function createSmsCampaignAllowedStatusesProvider(): array
@@ -312,7 +335,7 @@ class RegisterClientsTest extends TestCase
     {
         return collect(Status::getConstants())
             ->diff(ClientRegistrationHistory::ALLOWED_STATUSES_TYPES)
-            ->mapWithKeys(fn (string $status, string $key) => [str_headline($key) => [$status]])
+            ->mapWithKeys(fn (string $status, string $key) => [Str::headline($key) => [$status]])
             ->toArray();
     }
 }

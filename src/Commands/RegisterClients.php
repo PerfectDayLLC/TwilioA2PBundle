@@ -36,11 +36,11 @@ class RegisterClients extends Command
 
     public function handle(RegisterService $service): int
     {
-        /** @var Model|ClientRegistrationHistoryContract $entityNamespaceModel */
+        /** @var Model|ClientRegistrationHistoryContract|class-string $entityNamespaceModel */
         $entityNamespaceModel = config('twilioa2pbundle.entity_model');
 
         // Get Unregistered Clients query
-        $unregisteredClients = $entityNamespaceModel::where(function (Builder $query) {
+        $unregisteredClients = $entityNamespaceModel::query()->where(function (Builder $query) {
             return $query->whereHas(
                 'twilioA2PClientRegistrationHistories',
                 function (Builder $query) {

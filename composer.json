@@ -32,9 +32,6 @@
         }
     },
     "autoload-dev": {
-        "files": [
-            "tests/helpers.php"
-        ],
         "psr-4": {
             "PerfectDayLlc\\TwilioA2PBundle\\Tests\\": "tests/"
         }

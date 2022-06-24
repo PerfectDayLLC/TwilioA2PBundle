@@ -94,7 +94,7 @@ class ClientRegistrationHistory extends Model
 
     private static function isEntityModelUsingUuid(): bool
     {
-        /** @var string $entityModelString */
+        /** @var class-string $entityModelString */
         $entityModelString = config('twilioa2pbundle.entity_model');
 
         /** @var Model $entityModel */
