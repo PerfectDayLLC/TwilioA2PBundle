@@ -50,19 +50,21 @@ class RegisterService
     }
 
     /**
+     * @deprecated
      * @throws TwilioException
      */
     public function createAndSubmitCustomerProfile(ClientData $client): ?CustomerProfilesInstance
     {
+        // DONE
         $customerProfilesInstance = $this->createEmptyCustomerProfileStarterBundle($client);
 
-        // Create end-user object of type: customer_profile_information
+        // DONE
         $endUserInstance = $this->createEndUserCustomerProfileInfo($client);
 
-        // Create supporting document: customer_profile_address
+        // DONE
         $addressInstance = $this->createCustomerProfileAddress($client);
 
-        // Create Customer Support Docs
+        // DONE
         $supportingDocumentInstance = $this->createCustomerSupportDocs(
             $client,
             "{$client->getCompanyName()} Document Address",
@@ -137,7 +139,7 @@ class RegisterService
     /**
      * @throws TwilioException
      */
-    private function createEmptyCustomerProfileStarterBundle(ClientData $client): CustomerProfilesInstance
+    public function createEmptyCustomerProfileStarterBundle(ClientData $client): CustomerProfilesInstance
     {
         /**
          * Delay before requests
@@ -183,9 +185,10 @@ class RegisterService
     }
 
     /**
+     * Create end-user object of type: customer_profile_information
      * @throws TwilioException
      */
-    private function createEndUserCustomerProfileInfo(ClientData $client): EndUserInstance
+    public function createEndUserCustomerProfileInfo(ClientData $client): EndUserInstance
     {
         /**
          * Delay before requests
@@ -237,9 +240,11 @@ class RegisterService
     }
 
     /**
+     * Create supporting document: customer_profile_address
+     *
      * @throws TwilioException
      */
-    private function createCustomerProfileAddress(ClientData $client): AddressInstance
+    public function createCustomerProfileAddress(ClientData $client): AddressInstance
     {
         /**
          * Delay before requests
@@ -286,9 +291,11 @@ class RegisterService
     }
 
     /**
+     * Create Customer Support Docs
+     *
      * @throws TwilioException
      */
-    private function createCustomerSupportDocs(
+    public function createCustomerSupportDocs(
         ClientData $client,
         string $documentName,
         string $documentType,

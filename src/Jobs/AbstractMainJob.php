@@ -24,4 +24,6 @@ abstract class AbstractMainJob implements ShouldQueue
 
         $this->client = $client;
     }
+
+    abstract public function handle(): void;
 }
