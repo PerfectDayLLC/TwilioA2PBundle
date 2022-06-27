@@ -7,16 +7,22 @@ use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Str;
 use PerfectDayLlc\TwilioA2PBundle\Commands\RegisterClients;
 use PerfectDayLlc\TwilioA2PBundle\Entities\Status;
+use PerfectDayLlc\TwilioA2PBundle\Jobs\A2PBrandStarter\AssignCustomerProfileA2PTrustBundle;
+use PerfectDayLlc\TwilioA2PBundle\Jobs\A2PBrandStarter\CreateEmptyA2PStarterTrustBundle;
+use PerfectDayLlc\TwilioA2PBundle\Jobs\A2PBrandStarter\EvaluateA2PStarterProfileBundle;
+use PerfectDayLlc\TwilioA2PBundle\Jobs\A2PBrandStarter\SubmitA2PProfileBundle;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\AbstractMainJob;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\CreateA2PBrand;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\CreateA2PSmsCampaignUseCase;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\CreateMessagingService;
+use PerfectDayLlc\TwilioA2PBundle\Jobs\StarterCustomerProfile\AttachObjectSidToCustomerProfile;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\StarterCustomerProfile\CreateCustomerProfileAddress;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\StarterCustomerProfile\CreateCustomerSupportDocs;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\StarterCustomerProfile\CreateEmptyCustomerProfileStarterBundle;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\StarterCustomerProfile\CreateEndUserCustomerProfileInfo;
+use PerfectDayLlc\TwilioA2PBundle\Jobs\StarterCustomerProfile\EvaluateCustomerProfileBundle;
+use PerfectDayLlc\TwilioA2PBundle\Jobs\StarterCustomerProfile\SubmitCustomerProfileBundle;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\SubmitA2PTrustBundle;
-use PerfectDayLlc\TwilioA2PBundle\Jobs\SubmitCustomerProfileBundle;
 use PerfectDayLlc\TwilioA2PBundle\Models\ClientRegistrationHistory;
 use PerfectDayLlc\TwilioA2PBundle\Services\RegisterService;
 use PerfectDayLlc\TwilioA2PBundle\Tests\Fake\Models\Entity;
@@ -105,7 +111,6 @@ class RegisterClientsTest extends TestCase
         $this->createRealClientRegistrationHistoryModel([
             'entity_id' => $entity,
             'request_type' => 'createEmptyCustomerProfileStarterBundle',
-            'status' => $this->faker()->randomElement(Status::getOngoingA2PStatuses())
         ]);
 
         $this->travel(1)->day();
@@ -136,7 +141,6 @@ class RegisterClientsTest extends TestCase
         $this->createRealClientRegistrationHistoryModel([
             'entity_id' => $entity,
             'request_type' => 'createEndUserCustomerProfileInfo',
-            'status' => $this->faker()->randomElement(Status::getOngoingA2PStatuses())
         ]);
 
         $this->travel(1)->day();
@@ -167,7 +171,6 @@ class RegisterClientsTest extends TestCase
         $this->createRealClientRegistrationHistoryModel([
             'entity_id' => $entity,
             'request_type' => 'createCustomerProfileAddress',
-            'status' => $this->faker()->randomElement(Status::getOngoingA2PStatuses())
         ]);
 
         $this->travel(1)->day();
@@ -188,23 +191,106 @@ class RegisterClientsTest extends TestCase
     }
 
     /**
-     * --------------------------------------------------------------------------------
-     * New job/step here
-     * --------------------------------------------------------------------------------
-     */
-
-    /**
      * @depends test_command_has_correct_data
      */
-    public function test_command_should_dispatch_submit_a2p_trust_bundle_job_when_specific_request_type_is_found(): void
+    public function test_command_should_dispatch_a_attach_object_sid_to_customer_profile_job_when_there_is_history(): void
     {
         /** @var Entity $entity */
         $entity = factory(Entity::class)->create(self::ENTITY_DATA);
 
-        $history = $this->createRealClientRegistrationHistoryModel([
+        $this->createRealClientRegistrationHistoryModel([
+            'entity_id' => $entity,
+            'request_type' => 'createCustomerSupportDocs',
+        ]);
+
+        $this->travel(1)->day();
+
+        Queue::fake();
+
+        $this->artisan(RegisterClients::class)
+            ->assertExitCode(0);
+
+        $this->assertOnlyPushedOn(
+            'submit-customer-profile-bundle',
+            AttachObjectSidToCustomerProfile::class,
+            function (AttachObjectSidToCustomerProfile $job) use ($entity) {
+                return $job->client == $entity->getClientData() &&
+                       $job->registerService == $this->registerService;
+            }
+        );
+    }
+
+    /**
+     * @depends test_command_has_correct_data
+     */
+    public function test_command_should_dispatch_a_evaluate_customer_profile_bundle_job_when_there_is_history(): void
+    {
+        /** @var Entity $entity */
+        $entity = factory(Entity::class)->create(self::ENTITY_DATA);
+
+        $this->createRealClientRegistrationHistoryModel([
+            'entity_id' => $entity,
+            'request_type' => 'attachObjectSidToCustomerProfile',
+        ]);
+
+        $this->travel(1)->day();
+
+        Queue::fake();
+
+        $this->artisan(RegisterClients::class)
+            ->assertExitCode(0);
+
+        $this->assertOnlyPushedOn(
+            'submit-customer-profile-bundle',
+            EvaluateCustomerProfileBundle::class,
+            function (EvaluateCustomerProfileBundle $job) use ($entity) {
+                return $job->client == $entity->getClientData() &&
+                       $job->registerService == $this->registerService;
+            }
+        );
+    }
+
+    /**
+     * @depends test_command_has_correct_data
+     */
+    public function test_command_should_dispatch_a_submit_customer_profile_bundle_job_when_there_is_history(): void
+    {
+        /** @var Entity $entity */
+        $entity = factory(Entity::class)->create(self::ENTITY_DATA);
+
+        $this->createRealClientRegistrationHistoryModel([
+            'entity_id' => $entity,
+            'request_type' => 'evaluateCustomerProfileBundle',
+        ]);
+
+        $this->travel(1)->day();
+
+        Queue::fake();
+
+        $this->artisan(RegisterClients::class)
+            ->assertExitCode(0);
+
+        $this->assertOnlyPushedOn(
+            'submit-customer-profile-bundle',
+            SubmitCustomerProfileBundle::class,
+            function (SubmitCustomerProfileBundle $job) use ($entity) {
+                return $job->client == $entity->getClientData() &&
+                       $job->registerService == $this->registerService;
+            }
+        );
+    }
+
+    /**
+     * @depends test_command_has_correct_data
+     */
+    public function test_command_should_dispatch_a_create_empty_a2p_starter_trust_bundle_job_when_specific_request_type_is_found(): void
+    {
+        /** @var Entity $entity */
+        $entity = factory(Entity::class)->create(self::ENTITY_DATA);
+
+        $this->createRealClientRegistrationHistoryModel([
             'entity_id' => $entity,
             'request_type' => 'submitCustomerProfileBundle',
-            'status' => $this->faker()->randomElement(Status::getOngoingA2PStatuses())
         ]);
 
         $this->travel(1)->day();
@@ -216,11 +302,101 @@ class RegisterClientsTest extends TestCase
 
         $this->assertOnlyPushedOn(
             'submit-a2p-profile-bundle',
-            SubmitA2PTrustBundle::class,
-            function (SubmitA2PTrustBundle $job) use ($entity, $history) {
+            CreateEmptyA2PStarterTrustBundle::class,
+            function (CreateEmptyA2PStarterTrustBundle $job) use ($entity) {
+                return $job->client == $entity->getClientData() &&
+                       $job->registerService == $this->registerService;
+            }
+        );
+    }
+
+    /**
+     * @depends test_command_has_correct_data
+     */
+    public function test_command_should_dispatch_a_assign_customer_profile_a2p_trust_bundle_job_when_specific_request_type_is_found(): void
+    {
+        /** @var Entity $entity */
+        $entity = factory(Entity::class)->create(self::ENTITY_DATA);
+
+        $history = $this->createRealClientRegistrationHistoryModel([
+            'entity_id' => $entity,
+            'request_type' => 'createEmptyA2PStarterTrustBundle',
+        ]);
+
+        $this->travel(1)->day();
+
+        Queue::fake();
+
+        $this->artisan(RegisterClients::class)
+            ->assertExitCode(0);
+
+        $this->assertOnlyPushedOn(
+            'submit-a2p-profile-bundle',
+            AssignCustomerProfileA2PTrustBundle::class,
+            function (AssignCustomerProfileA2PTrustBundle $job) use ($entity, $history) {
                 return $job->client == $entity->getClientData() &&
                        $job->registerService == $this->registerService &&
                        $job->customerProfileBundleSid === $history->bundle_sid;
+            }
+        );
+    }
+
+    /**
+     * @depends test_command_has_correct_data
+     */
+    public function test_command_should_dispatch_a_evaluate_a2p_starter_profile_bundle_job_when_specific_request_type_is_found(): void
+    {
+        /** @var Entity $entity */
+        $entity = factory(Entity::class)->create(self::ENTITY_DATA);
+
+        $this->createRealClientRegistrationHistoryModel([
+            'entity_id' => $entity,
+            'request_type' => 'assignCustomerProfileA2PTrustBundle',
+        ]);
+
+        $this->travel(1)->day();
+
+        Queue::fake();
+
+        $this->artisan(RegisterClients::class)
+            ->assertExitCode(0);
+
+        $this->assertOnlyPushedOn(
+            'submit-a2p-profile-bundle',
+            EvaluateA2PStarterProfileBundle::class,
+            function (EvaluateA2PStarterProfileBundle $job) use ($entity) {
+                return $job->client == $entity->getClientData() &&
+                       $job->registerService == $this->registerService;
+            }
+        );
+    }
+
+    /**
+     * @depends test_command_has_correct_data
+     */
+    public function test_command_should_dispatch_a_submit_a2p_profile_bundle_job_when_specific_request_type_is_found(): void
+    {
+        /** @var Entity $entity */
+        $entity = factory(Entity::class)->create(self::ENTITY_DATA);
+
+        $this->createRealClientRegistrationHistoryModel([
+            'entity_id' => $entity,
+            'request_type' => 'evaluateA2PStarterProfileBundle',
+        ]);
+
+        $this->travel(1)->day();
+
+        Queue::fake();
+
+        $this->artisan(RegisterClients::class)
+            ->assertExitCode(0);
+
+        $this->assertOnlyPushedOn(
+            'submit-a2p-profile-bundle',
+            SubmitA2PProfileBundle::class,
+            function (SubmitA2PProfileBundle $job) use ($entity) {
+                return $job->client == $entity->getClientData() &&
+                       $job->registerService == $this->registerService;
             }
         );
     }
@@ -236,7 +412,6 @@ class RegisterClientsTest extends TestCase
         $this->createRealClientRegistrationHistoryModel([
             'entity_id' => $entity,
             'request_type' => 'submitA2PProfileBundle',
-            'status' => $this->faker()->randomElement(Status::getOngoingA2PStatuses())
         ]);
 
         $this->travel(1)->day();
@@ -267,7 +442,6 @@ class RegisterClientsTest extends TestCase
         $this->createRealClientRegistrationHistoryModel([
             'entity_id' => $entity,
             'request_type' => 'createA2PBrand',
-            'status' => $this->faker()->randomElement(Status::getOngoingA2PStatuses())
         ]);
 
         $this->travel(1)->day();

@@ -64,7 +64,7 @@ class RegisterService
         // DONE
         $addressInstance = $this->createCustomerProfileAddress($client);
 
-        // DONE
+        // DONE - NEED TO GET $addressInstance ON THE JOB
         $supportingDocumentInstance = $this->createCustomerSupportDocs(
             $client,
             "{$client->getCompanyName()} Document Address",
@@ -75,6 +75,8 @@ class RegisterService
         /**
          * Assign end-user, supporting document, and primary customer profile to the empty customer profile that
          * you created
+         *
+         * DONE - NEED TO GET $endUserInstance AND $supportingDocumentInstance ON THE JOB
          */
         $this->attachObjectSidToCustomerProfile($client, $customerProfilesInstance->sid, $endUserInstance->sid);
         $this->attachObjectSidToCustomerProfile(
@@ -88,13 +90,13 @@ class RegisterService
             $this->primaryCustomerProfileSid
         );
 
-        // Evaluate the Customer Profile
+        // DONE - NEED TO GET $customerProfilesInstance ON THE JOB
         $customerProfilesEvaluationsInstance = $this->evaluateCustomerProfileBundle(
             $client,
             $customerProfilesInstance->sid
         );
 
-        // Submit the Customer Profile for review
+        // DONE - NEED TO GET $customerProfilesEvaluationsInstance AND $customerProfilesInstance ON THE JOB
         return $customerProfilesEvaluationsInstance->status === Status::BUNDLES_COMPLIANT
             ? $this->submitCustomerProfileBundle($client, $customerProfilesInstance->sid)
             : null;
@@ -105,19 +107,23 @@ class RegisterService
      */
     public function createAndSubmitA2PProfile(ClientData $client, string $customerProfileSid): ?TrustProductsInstance
     {
+        // DONE
         $trustProductsInstance = $this->createEmptyA2PStarterTrustBundle($client);
 
+        // DONE
         $this->assignCustomerProfileA2PTrustBundle(
             $client,
             $trustProductsInstance->sid,
             $customerProfileSid
         );
 
+        // DONE
         $trustProductsEvaluationsInstance = $this->evaluateA2PStarterProfileBundle(
             $client,
             $trustProductsInstance->sid
         );
 
+        // DONE
         return $trustProductsEvaluationsInstance->status === Status::BUNDLES_COMPLIANT
             ? $this->submitA2PProfileBundle($client, $trustProductsInstance->sid)
             : null;
@@ -346,7 +352,7 @@ class RegisterService
     /**
      * @throws TwilioException
      */
-    private function attachObjectSidToCustomerProfile(
+    public function attachObjectSidToCustomerProfile(
         ClientData $client,
         string $customerProfileBundleSid,
         string $objectSid
@@ -392,9 +398,11 @@ class RegisterService
     }
 
     /**
+     * Evaluate the Customer Profile
+     *
      * @throws TwilioException
      */
-    private function evaluateCustomerProfileBundle(
+    public function evaluateCustomerProfileBundle(
         ClientData $client,
         string $customerProfileBundleSid
     ): CustomerProfilesEvaluationsInstance {
@@ -442,9 +450,11 @@ class RegisterService
     }
 
     /**
+     * Submit the Customer Profile for review
+     *
      * @throws TwilioException
      */
-    private function submitCustomerProfileBundle(
+    public function submitCustomerProfileBundle(
         ClientData $client,
         string $customerProfileBundleSid
     ): CustomerProfilesInstance {
@@ -491,7 +501,7 @@ class RegisterService
     /**
      * @throws TwilioException
      */
-    private function createEmptyA2PStarterTrustBundle(ClientData $client): TrustProductsInstance
+    public function createEmptyA2PStarterTrustBundle(ClientData $client): TrustProductsInstance
     {
         /**
          * Delay before requests
@@ -539,7 +549,7 @@ class RegisterService
     /**
      * @throws TwilioException
      */
-    private function assignCustomerProfileA2PTrustBundle(
+    public function assignCustomerProfileA2PTrustBundle(
         ClientData $client,
         string $trustBundleSid,
         string $customerProfileSid
@@ -588,7 +598,7 @@ class RegisterService
     /**
      * @throws TwilioException
      */
-    private function evaluateA2PStarterProfileBundle(
+    public function evaluateA2PStarterProfileBundle(
         ClientData $client,
         string $trustBundleSid
     ): TrustProductsEvaluationsInstance {
@@ -639,7 +649,7 @@ class RegisterService
     /**
      * @throws TwilioException
      */
-    private function submitA2PProfileBundle(ClientData $client, string $trustBundleSid): TrustProductsInstance
+    public function submitA2PProfileBundle(ClientData $client, string $trustBundleSid): TrustProductsInstance
     {
         /**
          * Delay before requests
