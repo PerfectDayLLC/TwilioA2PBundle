@@ -23,7 +23,7 @@ class ClientRegistrationHistoryTest extends TestCase
                 'entity_id' => $entity->id,
                 'request_type' => 'messageService',
                 'status' => $status,
-                'created_at' => now()->minutes(-6)
+                'created_at' => now()->minutes(-6),
             ]);
 
         // The one I expect to get back as the latest
@@ -33,7 +33,7 @@ class ClientRegistrationHistoryTest extends TestCase
                 'request_type' => 'messageService',
                 'bundle_sid' => $myBundleSid = 'my_bundle_id_123',
                 'status' => $status,
-                'created_at' => now()->minutes(-5)
+                'created_at' => now()->minutes(-5),
             ]);
 
         // Latest but not assigned to my entity
@@ -42,7 +42,7 @@ class ClientRegistrationHistoryTest extends TestCase
                 'request_type' => 'messageService',
                 'bundle_sid' => 'my_bundle_id_456',
                 'status' => $status,
-                'created_at' => now()->minutes(-4)
+                'created_at' => now()->minutes(-4),
             ]);
 
         // Latest but has different request_type
@@ -50,7 +50,7 @@ class ClientRegistrationHistoryTest extends TestCase
             'entity_id' => $entity->id,
             'request_type' => 'a2pBundleSubmit',
             'status' => $status,
-            'created_at' => now()->minutes(-3)
+            'created_at' => now()->minutes(-3),
         ]);
 
         // Latest but has not allowed status
@@ -58,7 +58,7 @@ class ClientRegistrationHistoryTest extends TestCase
             'entity_id' => $entity->id,
             'request_type' => 'messageService',
             'status' => 'compliant',
-            'created_at' => now()->minutes(-2)
+            'created_at' => now()->minutes(-2),
         ]);
 
         $latestBundleSid = ClientRegistrationHistoryFake::getSidForAllowedStatuses(
@@ -82,7 +82,7 @@ class ClientRegistrationHistoryTest extends TestCase
             'entity_id' => $entity->id,
             'request_type' => 'messageService',
             'status' => 'compliant',
-            'created_at' => now()->minutes(-3)
+            'created_at' => now()->minutes(-3),
         ]);
 
         // Latest but not assigned to my entity
@@ -90,7 +90,7 @@ class ClientRegistrationHistoryTest extends TestCase
             ->create([
                 'request_type' => 'messageService',
                 'status' => $status,
-                'created_at' => now()->minutes(-2)
+                'created_at' => now()->minutes(-2),
             ]);
 
         $latestBundleSid = ClientRegistrationHistoryFake::getSidForAllowedStatuses(

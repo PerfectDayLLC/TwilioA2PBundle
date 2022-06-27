@@ -19,14 +19,14 @@ class SubmitCustomerProfileBundle extends AbstractMainJob
         parent::__construct($registerService, $client);
 
         /**
-         * Get and store SID (read entity->getId() latest request type = createEmptyCustomerProfileStarterBundle and get SID)
+         * Get and store SID (read entity->getId() latest request type = createEmptyCustomerProfileStarterBundle and get SID).
          *
          * Check RegisterService:59
          */
         $this->customerProfilesInstanceSid = '';
 
         /**
-         * Get and store SID (read entity->getId() latest request type = evaluateCustomerProfileBundle and get SID)
+         * Get and store SID (read entity->getId() latest request type = evaluateCustomerProfileBundle and get SID).
          *
          * Check RegisterService:94
          */

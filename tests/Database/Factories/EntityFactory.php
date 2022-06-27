@@ -5,7 +5,6 @@ use Illuminate\Database\Eloquent\Factory;
 use PerfectDayLlc\TwilioA2PBundle\Tests\Fake\Models\Entity;
 
 /** @var Factory $factory */
-
 $factory->define(Entity::class, function (Faker $faker) {
     return [
         'company_name' => $faker->company(),

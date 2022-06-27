@@ -19,14 +19,14 @@ class SubmitA2PProfileBundle extends AbstractMainJob
         parent::__construct($registerService, $client);
 
         /**
-         * Get and store SID (read entity->getId() latest request type = createEmptyA2PStarterTrustBundle and get SID)
+         * Get and store SID (read entity->getId() latest request type = createEmptyA2PStarterTrustBundle and get SID).
          *
          * Check RegisterService:111
          */
         $this->trustProductsInstanceSid = '';
 
         /**
-         * Get and store SID (read entity->getId() latest request type = evaluateA2PStarterProfileBundle and get SID)
+         * Get and store SID (read entity->getId() latest request type = evaluateA2PStarterProfileBundle and get SID).
          *
          * Check RegisterService:121
          */
