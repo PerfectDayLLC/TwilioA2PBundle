@@ -11,7 +11,8 @@ use PerfectDayLlc\TwilioA2PBundle\Jobs\A2PBrandStarter\EvaluateA2PStarterProfile
 use PerfectDayLlc\TwilioA2PBundle\Jobs\A2PBrandStarter\SubmitA2PProfileBundle;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\CreateA2PBrand;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\CreateA2PSmsCampaignUseCase;
-use PerfectDayLlc\TwilioA2PBundle\Jobs\CreateMessagingService;
+use PerfectDayLlc\TwilioA2PBundle\Jobs\MessagingService\AddPhoneNumberToMessagingService;
+use PerfectDayLlc\TwilioA2PBundle\Jobs\MessagingService\CreateMessagingService;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\StarterCustomerProfile\AttachObjectSidToCustomerProfile;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\StarterCustomerProfile\CreateCustomerProfileAddress;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\StarterCustomerProfile\CreateCustomerSupportDocs;
@@ -110,6 +111,11 @@ class EntityRegistrator
                     return;
                 case 'createA2PBrand':
                     dispatch(new CreateMessagingService($service, $client))
+                        ->onQueue(static::CREATE_MESSAGING_SERVICE_QUEUE);
+
+                    return;
+                case 'createMessagingService':
+                    dispatch(new AddPhoneNumberToMessagingService($service, $client))
                         ->onQueue(static::CREATE_MESSAGING_SERVICE_QUEUE);
 
                     return;

@@ -12,7 +12,8 @@ use PerfectDayLlc\TwilioA2PBundle\Jobs\A2PBrandStarter\EvaluateA2PStarterProfile
 use PerfectDayLlc\TwilioA2PBundle\Jobs\A2PBrandStarter\SubmitA2PProfileBundle;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\CreateA2PBrand;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\CreateA2PSmsCampaignUseCase;
-use PerfectDayLlc\TwilioA2PBundle\Jobs\CreateMessagingService;
+use PerfectDayLlc\TwilioA2PBundle\Jobs\MessagingService\AddPhoneNumberToMessagingService;
+use PerfectDayLlc\TwilioA2PBundle\Jobs\MessagingService\CreateMessagingService;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\StarterCustomerProfile\AttachObjectSidToCustomerProfile;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\StarterCustomerProfile\CreateCustomerProfileAddress;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\StarterCustomerProfile\CreateCustomerSupportDocs;
@@ -432,7 +433,7 @@ class RegisterClientsTest extends TestCase
     /**
      * @depends test_command_has_correct_data
      */
-    public function test_command_should_dispatch_create_messaging_service_job_when_specific_request_type_is_found(): void
+    public function test_command_should_dispatch_a_create_messaging_service_job_when_specific_request_type_is_found(): void
     {
         /** @var Entity $entity */
         $entity = factory(Entity::class)->create(self::ENTITY_DATA);
@@ -461,11 +462,41 @@ class RegisterClientsTest extends TestCase
 
     /**
      * @depends test_command_has_correct_data
+     */
+    public function test_command_should_dispatch_a_add_phone_number_to_messaging_service_job_when_specific_request_type_is_found(): void
+    {
+        /** @var Entity $entity */
+        $entity = factory(Entity::class)->create(self::ENTITY_DATA);
+
+        $this->createRealClientRegistrationHistoryModel([
+            'entity_id' => $entity,
+            'request_type' => 'createMessagingService',
+        ]);
+
+        $this->travel(1)->day();
+
+        Queue::fake();
+
+        $this->artisan(RegisterClients::class)
+            ->assertExitCode(0);
+
+        $this->assertOnlyPushedOn(
+            'create-messaging-service',
+            AddPhoneNumberToMessagingService::class,
+            function (AddPhoneNumberToMessagingService $job) use ($entity) {
+                return $job->client == $entity->getClientData() &&
+                       $job->registerService == $this->registerService;
+            }
+        );
+    }
+
+    /**
+     * @depends test_command_has_correct_data
      * @dataProvider createSmsCampaignAllowedStatusesProvider
      */
     public function test_command_should_dispatch_create_a2p_sms_campaign_use_case_job_when_specific_request_type_is_found_and_one_day_passed(
         string $originalRequestType,
-        array $requiredHistoryRequestTypes
+        array  $requiredHistoryRequestTypes
     ): void {
         /** @var Entity $entity */
         $entity = factory(Entity::class)->create(self::ENTITY_DATA);
@@ -548,7 +579,7 @@ class RegisterClientsTest extends TestCase
         /** @var Entity $entity */
         $this->createRealClientRegistrationHistoryModel([
             'entity_id' => factory(Entity::class)->create(self::ENTITY_DATA),
-            'status' => $status,
+            'status' => $status
         ]);
 
         $this->artisan(RegisterClients::class)
@@ -646,36 +677,5 @@ class RegisterClientsTest extends TestCase
             ->diff(ClientRegistrationHistory::ALLOWED_STATUSES_TYPES)
             ->mapWithKeys(fn (string $status, string $key) => [str_headline($key) => [$status]])
             ->toArray();
-    }
-
-    public function expectedStatusesToTriggerExpectedJobsProvider(): array
-    {
-        return [
-            'SubmitCustomerProfileBundle #1' => [
-                'createEmptyCustomerProfileStarterBundle',
-                SubmitCustomerProfileBundle::class,
-            ],
-            'SubmitCustomerProfileBundle #2' => [
-                'createEndUserCustomerProfileInfo',
-                SubmitCustomerProfileBundle::class,
-            ],
-            'SubmitCustomerProfileBundle #3' => ['createCustomerProfileAddress', SubmitCustomerProfileBundle::class],
-            'SubmitCustomerProfileBundle #4' => ['createCustomerSupportDocs', SubmitCustomerProfileBundle::class],
-            'SubmitCustomerProfileBundle #5' => [
-                'attachObjectSidToCustomerProfile',
-                SubmitCustomerProfileBundle::class,
-            ],
-            'SubmitCustomerProfileBundle #6' => ['evaluateCustomerProfileBundle', SubmitCustomerProfileBundle::class],
-            'SubmitA2PTrustBundle #1' => ['createEmptyA2PStarterTrustBundle', SubmitA2PTrustBundle::class],
-            'SubmitA2PTrustBundle #2' => ['assignCustomerProfileA2PTrustBundle', SubmitA2PTrustBundle::class],
-            'SubmitA2PTrustBundle #3' => ['evaluateA2PStarterProfileBundle', SubmitA2PTrustBundle::class],
-            'CreateA2PBrand #1' => ['createA2PBrand', CreateA2PBrand::class],
-            'CreateMessagingService #1' => ['createMessagingService', CreateMessagingService::class],
-            'CreateA2PSmsCampaignUseCase #1' => [
-                'createA2PMessagingCampaignUseCase',
-                CreateA2PSmsCampaignUseCase::class,
-                1,
-            ],
-        ];
     }
 }

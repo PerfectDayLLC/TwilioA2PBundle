@@ -49,100 +49,6 @@ class RegisterService
     }
 
     /**
-     * @deprecated
-     *
-     * @throws TwilioException
-     */
-    public function createAndSubmitCustomerProfile(ClientData $client): ?CustomerProfilesInstance
-    {
-        // DONE
-        $customerProfilesInstance = $this->createEmptyCustomerProfileStarterBundle($client);
-
-        // DONE
-        $endUserInstance = $this->createEndUserCustomerProfileInfo($client);
-
-        // DONE
-        $addressInstance = $this->createCustomerProfileAddress($client);
-
-        // DONE - NEED TO GET $addressInstance ON THE JOB
-        $supportingDocumentInstance = $this->createCustomerSupportDocs(
-            $client,
-            "{$client->getCompanyName()} Document Address",
-            'customer_profile_address',
-            ['address_sids' => $addressInstance->sid]
-        );
-
-        /**
-         * Assign end-user, supporting document, and primary customer profile to the empty customer profile that
-         * you created.
-         *
-         * DONE - NEED TO GET $endUserInstance AND $supportingDocumentInstance ON THE JOB
-         */
-        $this->attachObjectSidToCustomerProfile($client, $customerProfilesInstance->sid, $endUserInstance->sid);
-        $this->attachObjectSidToCustomerProfile(
-            $client,
-            $customerProfilesInstance->sid,
-            $supportingDocumentInstance->sid
-        );
-        $this->attachObjectSidToCustomerProfile(
-            $client,
-            $customerProfilesInstance->sid,
-            $this->primaryCustomerProfileSid
-        );
-
-        // DONE - NEED TO GET $customerProfilesInstance ON THE JOB
-        $customerProfilesEvaluationsInstance = $this->evaluateCustomerProfileBundle(
-            $client,
-            $customerProfilesInstance->sid
-        );
-
-        // DONE - NEED TO GET $customerProfilesEvaluationsInstance AND $customerProfilesInstance ON THE JOB
-        return $customerProfilesEvaluationsInstance->status === Status::BUNDLES_COMPLIANT
-            ? $this->submitCustomerProfileBundle($client, $customerProfilesInstance->sid)
-            : null;
-    }
-
-    /**
-     * @throws TwilioException
-     */
-    public function createAndSubmitA2PProfile(ClientData $client, string $customerProfileSid): ?TrustProductsInstance
-    {
-        // DONE
-        $trustProductsInstance = $this->createEmptyA2PStarterTrustBundle($client);
-
-        // DONE
-        $this->assignCustomerProfileA2PTrustBundle(
-            $client,
-            $trustProductsInstance->sid,
-            $customerProfileSid
-        );
-
-        // DONE
-        $trustProductsEvaluationsInstance = $this->evaluateA2PStarterProfileBundle(
-            $client,
-            $trustProductsInstance->sid
-        );
-
-        // DONE
-        return $trustProductsEvaluationsInstance->status === Status::BUNDLES_COMPLIANT
-            ? $this->submitA2PProfileBundle($client, $trustProductsInstance->sid)
-            : null;
-    }
-
-    /**
-     * @throws TwilioException
-     */
-    public function createMessageServiceWithPhoneNumber(ClientData $client): ?PhoneNumberInstance
-    {
-        $serviceInstance = $this->createMessagingService($client);
-
-        // Add Phone Number to Messaging Service
-        return $serviceInstance->sid
-            ? $this->addPhoneNumberToMessagingService($client, $serviceInstance->sid)
-            : null;
-    }
-
-    /**
      * @throws TwilioException
      */
     public function createEmptyCustomerProfileStarterBundle(ClientData $client): CustomerProfilesInstance
@@ -802,10 +708,8 @@ class RegisterService
     /**
      * @throws TwilioException
      */
-    private function addPhoneNumberToMessagingService(
-        ClientData $client,
-        string $messageServiceSid
-    ): PhoneNumberInstance {
+    public function addPhoneNumberToMessagingService(ClientData $client, string $messageServiceSid): PhoneNumberInstance
+    {
         /**
          * Delay before requests.
          *
