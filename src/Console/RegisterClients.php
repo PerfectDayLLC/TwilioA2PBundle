@@ -1,6 +1,6 @@
 <?php
 
-namespace PerfectDayLlc\TwilioA2PBundle\Commands;
+namespace PerfectDayLlc\TwilioA2PBundle\Console;
 
 use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Builder;

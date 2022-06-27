@@ -3,6 +3,7 @@
 namespace PerfectDayLlc\TwilioA2PBundle;
 
 use Illuminate\Support\ServiceProvider;
+use PerfectDayLlc\TwilioA2PBundle\Console\RegisterClients;
 use PerfectDayLlc\TwilioA2PBundle\Services\RegisterService;
 
 class TwilioA2PBundleServiceProvider extends ServiceProvider
@@ -31,7 +32,7 @@ class TwilioA2PBundleServiceProvider extends ServiceProvider
             ], 'twilio-a2p-bundle-config');
 
             $this->commands([
-                Commands\RegisterClients::class,
+                RegisterClients::class,
             ]);
         }
     }

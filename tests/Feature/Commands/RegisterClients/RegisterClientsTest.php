@@ -4,7 +4,7 @@ namespace PerfectDayLlc\TwilioA2PBundle\Tests\Feature\Commands\RegisterClients;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Queue;
-use PerfectDayLlc\TwilioA2PBundle\Commands\RegisterClients;
+use PerfectDayLlc\TwilioA2PBundle\Console\RegisterClients;
 use PerfectDayLlc\TwilioA2PBundle\Entities\Status;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\A2PBrandStarter\AssignCustomerProfileA2PTrustBundle;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\A2PBrandStarter\CreateEmptyA2PStarterTrustBundle;
