@@ -3,7 +3,6 @@
 namespace PerfectDayLlc\TwilioA2PBundle\Jobs\A2PBrandStarter;
 
 use PerfectDayLlc\TwilioA2PBundle\Entities\ClientData;
-use PerfectDayLlc\TwilioA2PBundle\Entities\RegisterClientsMethodsSignatureEnum;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\AbstractMainJob;
 use PerfectDayLlc\TwilioA2PBundle\Models\ClientRegistrationHistory;
 use PerfectDayLlc\TwilioA2PBundle\Services\RegisterService;
@@ -24,16 +23,14 @@ class AssignCustomerProfileA2PTrustBundle extends AbstractMainJob
 
         $this->customerProfileBundleSid = $customerProfileBundleSid ?:
             ClientRegistrationHistory::getSidForAllowedStatuses(
-                RegisterClientsMethodsSignatureEnum::SUBMIT_CUSTOMER_PROFILE_BUNDLE,
+                'submitCustomerProfileBundle',
                 $client->getId()
             );
 
-        /**
-         * Get and store SID (read entity->getId() latest request type = createEmptyA2PStarterTrustBundle and get SID).
-         *
-         * Check RegisterService:111
-         */
-        $this->trustProductsInstanceSid = '';
+        $this->trustProductsInstanceSid = ClientRegistrationHistory::getSidForAllowedStatuses(
+            'createEmptyA2PStarterTrustBundle',
+            $client->getId()
+        );
     }
 
     /**

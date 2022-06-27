@@ -5,7 +5,6 @@ namespace PerfectDayLlc\TwilioA2PBundle\Domain;
 use Exception;
 use Illuminate\Support\Facades\Log;
 use PerfectDayLlc\TwilioA2PBundle\Contracts\ClientRegistrationHistory;
-use PerfectDayLlc\TwilioA2PBundle\Entities\RegisterClientsMethodsSignatureEnum;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\A2PBrandStarter\AssignCustomerProfileA2PTrustBundle;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\A2PBrandStarter\CreateEmptyA2PStarterTrustBundle;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\A2PBrandStarter\EvaluateA2PStarterProfileBundle;
@@ -26,15 +25,15 @@ use Throwable;
 
 class EntityRegistrator
 {
+    public const SUBMIT_CUSTOMER_PROFILE_BUNDLE_QUEUE = 'submit-customer-profile-bundle';
+
+    public const SUBMIT_A2P_PROFILE_BUNDLE_QUEUE = 'submit-a2p-profile-bundle';
+
     public const CREATE_A2P_BRAND_JOB_QUEUE = 'create-a2p-brand-job';
 
     public const CREATE_A2P_SMS_CAMPAIGN_USE_CASE_JOB_QUEUE = 'create-a2p-sms-campaign-use-case-job';
 
     public const CREATE_MESSAGING_SERVICE_QUEUE = 'create-messaging-service';
-
-    public const SUBMIT_A2P_PROFILE_BUNDLE_QUEUE = 'submit-a2p-profile-bundle';
-
-    public const SUBMIT_CUSTOMER_PROFILE_BUNDLE_QUEUE = 'submit-customer-profile-bundle';
 
     public static function processEntity(ClientRegistrationHistory $entity): void
     {
@@ -84,7 +83,7 @@ class EntityRegistrator
                         ->onQueue(static::SUBMIT_CUSTOMER_PROFILE_BUNDLE_QUEUE);
 
                     return;
-                case RegisterClientsMethodsSignatureEnum::SUBMIT_CUSTOMER_PROFILE_BUNDLE:
+                case 'submitCustomerProfileBundle':
                     dispatch(new CreateEmptyA2PStarterTrustBundle($service, $client))
                         ->onQueue(static::SUBMIT_A2P_PROFILE_BUNDLE_QUEUE);
 
@@ -104,17 +103,17 @@ class EntityRegistrator
                         ->onQueue(static::SUBMIT_A2P_PROFILE_BUNDLE_QUEUE);
 
                     return;
-                case RegisterClientsMethodsSignatureEnum::SUBMIT_A2P_PROFILE_BUNDLE:
+                case 'submitA2PProfileBundle':
                     dispatch(new CreateA2PBrand($service, $client))
                         ->onQueue(static::CREATE_A2P_BRAND_JOB_QUEUE);
 
                     return;
-                case RegisterClientsMethodsSignatureEnum::CREATE_A2P_BRAND:
+                case 'createA2PBrand':
                     dispatch(new CreateMessagingService($service, $client))
                         ->onQueue(static::CREATE_MESSAGING_SERVICE_QUEUE);
 
                     return;
-                case RegisterClientsMethodsSignatureEnum::ADD_PHONE_NUMBER_TO_MESSAGING_SERVICE:
+                case 'addPhoneNumberToMessagingService':
                     if ($history->created_at->diffInDays() < 1) {
                         return;
                     }

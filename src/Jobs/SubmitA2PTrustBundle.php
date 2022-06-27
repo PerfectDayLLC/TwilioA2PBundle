@@ -3,7 +3,6 @@
 namespace PerfectDayLlc\TwilioA2PBundle\Jobs;
 
 use PerfectDayLlc\TwilioA2PBundle\Entities\ClientData;
-use PerfectDayLlc\TwilioA2PBundle\Entities\RegisterClientsMethodsSignatureEnum;
 use PerfectDayLlc\TwilioA2PBundle\Models\ClientRegistrationHistory;
 use PerfectDayLlc\TwilioA2PBundle\Services\RegisterService;
 use Twilio\Exceptions\TwilioException;
@@ -21,7 +20,7 @@ class SubmitA2PTrustBundle extends AbstractMainJob
 
         $this->customerProfileBundleSid = $customerProfileBundleSid ?:
             ClientRegistrationHistory::getSidForAllowedStatuses(
-                RegisterClientsMethodsSignatureEnum::SUBMIT_CUSTOMER_PROFILE_BUNDLE,
+                'submitCustomerProfileBundle',
                 $client->getId()
             );
     }

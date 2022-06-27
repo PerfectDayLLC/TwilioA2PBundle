@@ -4,6 +4,7 @@ namespace PerfectDayLlc\TwilioA2PBundle\Jobs\StarterCustomerProfile;
 
 use PerfectDayLlc\TwilioA2PBundle\Entities\ClientData;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\AbstractMainJob;
+use PerfectDayLlc\TwilioA2PBundle\Models\ClientRegistrationHistory;
 use PerfectDayLlc\TwilioA2PBundle\Services\RegisterService;
 use Twilio\Exceptions\TwilioException;
 
@@ -15,12 +16,10 @@ class EvaluateCustomerProfileBundle extends AbstractMainJob
     {
         parent::__construct($registerService, $client);
 
-        /**
-         * Get and store SID (read entity->getId() latest request type = createEmptyCustomerProfileStarterBundle and get SID).
-         *
-         * Check RegisterService:59
-         */
-        $this->customerProfileBundleSid = '';
+        $this->customerProfileBundleSid = ClientRegistrationHistory::getSidForAllowedStatuses(
+            'createEmptyCustomerProfileStarterBundle',
+            $client->getId()
+        );
     }
 
     /**

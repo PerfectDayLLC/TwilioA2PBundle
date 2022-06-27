@@ -5,6 +5,7 @@ namespace PerfectDayLlc\TwilioA2PBundle\Jobs\A2PBrandStarter;
 use PerfectDayLlc\TwilioA2PBundle\Entities\ClientData;
 use PerfectDayLlc\TwilioA2PBundle\Entities\Status;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\AbstractMainJob;
+use PerfectDayLlc\TwilioA2PBundle\Models\ClientRegistrationHistory;
 use PerfectDayLlc\TwilioA2PBundle\Services\RegisterService;
 use Twilio\Exceptions\TwilioException;
 
@@ -18,19 +19,16 @@ class SubmitA2PProfileBundle extends AbstractMainJob
     {
         parent::__construct($registerService, $client);
 
-        /**
-         * Get and store SID (read entity->getId() latest request type = createEmptyA2PStarterTrustBundle and get SID).
-         *
-         * Check RegisterService:111
-         */
-        $this->trustProductsInstanceSid = '';
+        $this->trustProductsInstanceSid = ClientRegistrationHistory::getSidForAllowedStatuses(
+            'createEmptyA2PStarterTrustBundle',
+            $client->getId()
+        );
 
-        /**
-         * Get and store SID (read entity->getId() latest request type = evaluateA2PStarterProfileBundle and get SID).
-         *
-         * Check RegisterService:121
-         */
-        $this->trustProductsInstanceStatus = '';
+        $this->trustProductsInstanceStatus = ClientRegistrationHistory::getSidForAllowedStatuses(
+            'evaluateA2PStarterProfileBundle',
+            $client->getId(),
+            false
+        );
     }
 
     /**

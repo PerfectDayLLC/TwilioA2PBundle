@@ -3,7 +3,6 @@
 namespace PerfectDayLlc\TwilioA2PBundle\Jobs;
 
 use PerfectDayLlc\TwilioA2PBundle\Entities\ClientData;
-use PerfectDayLlc\TwilioA2PBundle\Entities\RegisterClientsMethodsSignatureEnum;
 use PerfectDayLlc\TwilioA2PBundle\Models\ClientRegistrationHistory;
 use PerfectDayLlc\TwilioA2PBundle\Services\RegisterService;
 use Twilio\Exceptions\TwilioException;
@@ -21,13 +20,13 @@ class CreateA2PSmsCampaignUseCase extends AbstractMainJob
         parent::__construct($registerService, $client);
 
         $this->a2PBrandSid = ClientRegistrationHistory::getSidForAllowedStatuses(
-            RegisterClientsMethodsSignatureEnum::CREATE_A2P_BRAND,
+            'createA2PBrand',
             $client->getId(),
             false
         );
 
         $this->messagingServiceSid = ClientRegistrationHistory::getSidForAllowedStatuses(
-            RegisterClientsMethodsSignatureEnum::CREATE_MESSAGING_SERVICE,
+            'createMessagingService',
             $client->getId(),
             false
         );

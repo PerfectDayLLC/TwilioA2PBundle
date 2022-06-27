@@ -4,6 +4,7 @@ namespace PerfectDayLlc\TwilioA2PBundle\Jobs\StarterCustomerProfile;
 
 use PerfectDayLlc\TwilioA2PBundle\Entities\ClientData;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\AbstractMainJob;
+use PerfectDayLlc\TwilioA2PBundle\Models\ClientRegistrationHistory;
 use PerfectDayLlc\TwilioA2PBundle\Services\RegisterService;
 use Twilio\Exceptions\TwilioException;
 
@@ -19,26 +20,22 @@ class AttachObjectSidToCustomerProfile extends AbstractMainJob
     {
         parent::__construct($registerService, $client);
 
-        /**
-         * Get and store createEmptyCustomerProfileStarterBundle's SID (read entity->getId() latest request type = createEmptyCustomerProfileStarterBundle and get SID).
-         *
-         * Check RegisterService:59
-         */
-        $this->customerProfilesInstanceSid = '';
+        $this->customerProfilesInstanceSid = ClientRegistrationHistory::getSidForAllowedStatuses(
+            'createEmptyCustomerProfileStarterBundle',
+            $client->getId()
+        );
 
-        /**
-         * Get and store endUserInstance's SID (read entity->getId() latest request type = createEndUserCustomerProfileInfo and get SID).
-         *
-         * Check RegisterService:62
-         */
-        $this->endUserInstanceSid = '';
+        $this->endUserInstanceSid = ClientRegistrationHistory::getSidForAllowedStatuses(
+            'createEndUserCustomerProfileInfo',
+            $client->getId(),
+            false
+        );
 
-        /**
-         * Get and store supportingDocumentInstance's SID (read entity->getId() latest request type = createCustomerSupportDocs and get SID).
-         *
-         * Check RegisterService:68
-         */
-        $this->supportingDocumentInstanceSid = '';
+        $this->supportingDocumentInstanceSid = ClientRegistrationHistory::getSidForAllowedStatuses(
+            'createCustomerSupportDocs',
+            $client->getId(),
+            false
+        );
     }
 
     /**
@@ -64,7 +61,7 @@ class AttachObjectSidToCustomerProfile extends AbstractMainJob
         $this->registerService->attachObjectSidToCustomerProfile(
             $this->client,
             $this->customerProfilesInstanceSid,
-            $this->primaryCustomerProfileSid // GET FROM CONFIG
+            config('services.twilio.primary_customer_profile_sid')
         );
     }
 }

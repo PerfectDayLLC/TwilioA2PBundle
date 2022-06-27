@@ -4,20 +4,23 @@ namespace PerfectDayLlc\TwilioA2PBundle\Jobs\StarterCustomerProfile;
 
 use PerfectDayLlc\TwilioA2PBundle\Entities\ClientData;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\AbstractMainJob;
+use PerfectDayLlc\TwilioA2PBundle\Models\ClientRegistrationHistory;
 use PerfectDayLlc\TwilioA2PBundle\Services\RegisterService;
 use Twilio\Exceptions\TwilioException;
 
 class CreateCustomerSupportDocs extends AbstractMainJob
 {
-    private string $sid;
+    private string $addressInstanceSid;
 
     public function __construct(RegisterService $registerService, ClientData $client)
     {
         parent::__construct($registerService, $client);
 
-        // Get and store SID (read entity->getId() latest request type = createCustomerProfileAddress and get SID)
-        // Check RegisterService:65
-        $this->sid = '';
+        $this->addressInstanceSid = ClientRegistrationHistory::getSidForAllowedStatuses(
+            'createCustomerProfileAddress',
+            $client->getId(),
+            false
+        );
     }
 
     /**
@@ -29,7 +32,7 @@ class CreateCustomerSupportDocs extends AbstractMainJob
             $this->client,
             "{$this->client->getCompanyName()} Document Address",
             'customer_profile_address',
-            ['address_sids' => $this->sid]
+            ['address_sids' => $this->addressInstanceSid]
         );
     }
 }
