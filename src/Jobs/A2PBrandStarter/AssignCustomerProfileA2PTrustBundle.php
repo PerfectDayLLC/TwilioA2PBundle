@@ -29,7 +29,7 @@ class AssignCustomerProfileA2PTrustBundle extends AbstractMainJob
             );
 
         /**
-         * Get and store SID (read entity->getId() latest request type = createEmptyA2PStarterTrustBundle and get SID)
+         * Get and store SID (read entity->getId() latest request type = createEmptyA2PStarterTrustBundle and get SID).
          *
          * Check RegisterService:111
          */

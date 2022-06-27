@@ -20,21 +20,21 @@ class AttachObjectSidToCustomerProfile extends AbstractMainJob
         parent::__construct($registerService, $client);
 
         /**
-         * Get and store createEmptyCustomerProfileStarterBundle's SID (read entity->getId() latest request type = createEmptyCustomerProfileStarterBundle and get SID)
+         * Get and store createEmptyCustomerProfileStarterBundle's SID (read entity->getId() latest request type = createEmptyCustomerProfileStarterBundle and get SID).
          *
          * Check RegisterService:59
          */
         $this->customerProfilesInstanceSid = '';
 
         /**
-         * Get and store endUserInstance's SID (read entity->getId() latest request type = createEndUserCustomerProfileInfo and get SID)
+         * Get and store endUserInstance's SID (read entity->getId() latest request type = createEndUserCustomerProfileInfo and get SID).
          *
          * Check RegisterService:62
          */
         $this->endUserInstanceSid = '';
 
         /**
-         * Get and store supportingDocumentInstance's SID (read entity->getId() latest request type = createCustomerSupportDocs and get SID)
+         * Get and store supportingDocumentInstance's SID (read entity->getId() latest request type = createCustomerSupportDocs and get SID).
          *
          * Check RegisterService:68
          */

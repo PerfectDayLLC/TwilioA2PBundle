@@ -22,6 +22,7 @@ use PerfectDayLlc\TwilioA2PBundle\Entities\Status;
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property \Illuminate\Support\Carbon|null $deleted_at
  * @property-read \PerfectDayLlc\TwilioA2PBundle\Contracts\ClientRegistrationHistory|null $entity
+ *
  * @method static \Illuminate\Database\Eloquent\Builder|static allowedStatuses($types = [])
  * @method static \Illuminate\Database\Query\Builder|static onlyTrashed()
  * @method static \Illuminate\Database\Eloquent\Builder|static query()
@@ -100,7 +101,7 @@ class ClientRegistrationHistory extends Model
         /** @var Model $entityModel */
         $entityModel = new $entityModelString;
 
-        return !in_array($entityModel->getKeyType(), ['int', 'integer']);
+        return ! in_array($entityModel->getKeyType(), ['int', 'integer']);
     }
 
     public function entity(): BelongsTo

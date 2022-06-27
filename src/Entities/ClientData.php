@@ -18,7 +18,7 @@ class ClientData
     private string $city;
 
     /**
-     * State or Province
+     * State or Province.
      */
     private string $region;
 
@@ -51,7 +51,7 @@ class ClientData
 
     /**
      * @param  string|int  $id
-     * @param  string  $region State or Province
+     * @param  string  $region  State or Province
      */
     public function __construct(
         $id,
