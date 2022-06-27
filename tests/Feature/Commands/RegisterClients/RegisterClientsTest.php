@@ -560,52 +560,6 @@ class RegisterClientsTest extends TestCase
     }
 
     /**
-     * @depends test_command_should_dispatch_a_customer_profile_creation_job_when_there_is_no_entity_history
-     * @depends test_command_should_dispatch_submit_a2p_trust_bundle_job_when_specific_request_type_is_found
-     * @depends test_command_should_dispatch_create_a2p_brand_job_when_specific_request_type_is_found
-     * @depends test_command_should_dispatch_create_messaging_service_job_when_specific_request_type_is_found
-     * @depends test_command_should_dispatch_create_a2p_sms_campaign_use_case_job_when_specific_request_type_is_found_and_one_day_passed
-     * @depends test_command_should_dispatch_a_job_for_a_desired_entity_using_a_custom_extra_query
-     * @depends test_command_should_not_dispatch_any_job_when_the_status_is_not_one_of_the_allowed_ones
-     * @dataProvider expectedStatusesToTriggerExpectedJobsProvider
-     */
-    public function test_correct_job_is_dispatched_when_a_previous_job_did_not_successfully_finish_storing_other_request_type(
-        string $requestType,
-        string $job,
-        int $daysAhead = null
-    ): void
-    {
-        $this->markTestSkipped('skip for now');
-        $this->travel(1)->second();
-
-        /** @var Entity $entity */
-        $entity = factory(Entity::class)->create(self::ENTITY_DATA);
-
-        $this->createRealClientRegistrationHistoryModel([
-            'entity_id' => $entity,
-            'request_type' => $requestType,
-            'status' => $this->faker()->randomElement(ClientRegistrationHistory::ALLOWED_STATUSES_TYPES),
-        ]);
-
-        if ($daysAhead) {
-            $this->travel($daysAhead)->days();
-        }
-
-        Queue::fake();
-
-        $this->artisan(RegisterClients::class)
-            ->assertExitCode(0);
-
-        Queue::assertPushed(
-            $job,
-            function (AbstractMainJob $job) use ($entity) {
-                return $job->client == $entity->getClientData() &&
-                       $job->registerService == $this->registerService;
-            }
-        );
-    }
-
-    /**
      * @depends test_correct_job_is_dispatched_when_a_previous_job_did_not_successfully_finish_storing_other_status
      */
     public function test_the_current_loop_is_skipped_when_an_exception_is_thrown(): void
@@ -633,6 +587,27 @@ class RegisterClientsTest extends TestCase
                        $job->registerService == $this->registerService;
             }
         );
+    }
+
+    /**
+     * @depends test_the_current_loop_is_skipped_when_an_exception_is_thrown
+     */
+    public function test_command_should_not_crash_when_unknown_request_type_is_used(): void
+    {
+        /** @var Entity $entity */
+        $entity = factory(Entity::class)->create(self::ENTITY_DATA);
+
+        $this->createRealClientRegistrationHistoryModel([
+            'entity_id' => $entity,
+            'request_type' => $this->faker()->word,
+        ]);
+
+        Queue::fake();
+
+        $this->artisan(RegisterClients::class)
+            ->assertExitCode(0);
+
+        Queue::assertNothingPushed();
     }
 
     private function assertOnlyPushedOn(string $queue, string $job, callable $callable): void
