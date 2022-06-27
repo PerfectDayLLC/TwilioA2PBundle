@@ -13,12 +13,12 @@
             <directory suffix="Test.php">./tests/Feature</directory>
         </testsuite>
     </testsuites>
-    <coverage>
+    <coverage><!-- Newer PHPUnit -->
         <include>
             <directory suffix=".php">src/</directory>
         </include>
     </coverage>
-    <filter>
+    <filter><!-- Older PHPUnit -->
         <whitelist processUncoveredFilesFromWhitelist="true">
             <directory suffix=".php">src/</directory>
         </whitelist>

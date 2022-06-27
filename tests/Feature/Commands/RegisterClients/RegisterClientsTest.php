@@ -112,7 +112,7 @@ class RegisterClientsTest extends TestCase
             'request_type' => 'createEmptyCustomerProfileStarterBundle',
         ]);
 
-        $this->travel(1)->day();
+        $this->travel(1)->second();
 
         Queue::fake();
 
@@ -142,7 +142,7 @@ class RegisterClientsTest extends TestCase
             'request_type' => 'createEndUserCustomerProfileInfo',
         ]);
 
-        $this->travel(1)->day();
+        $this->travel(1)->second();
 
         Queue::fake();
 
@@ -172,7 +172,7 @@ class RegisterClientsTest extends TestCase
             'request_type' => 'createCustomerProfileAddress',
         ]);
 
-        $this->travel(1)->day();
+        $this->travel(1)->second();
 
         Queue::fake();
 
@@ -197,12 +197,28 @@ class RegisterClientsTest extends TestCase
         /** @var Entity $entity */
         $entity = factory(Entity::class)->create(self::ENTITY_DATA);
 
-        $this->createRealClientRegistrationHistoryModel([
+        $requiredHistoryRequestTypes = [
+            'createEmptyCustomerProfileStarterBundle' => 'bundle_sid',
+            'createEndUserCustomerProfileInfo' => 'object_sid',
+        ];
+
+        foreach ($requiredHistoryRequestTypes as $requestType => $type) {
+            $this->travel(1)->second();
+
+            $requiredHistoryRequestTypes[$requestType] = $this->createRealClientRegistrationHistoryModel([
+                'entity_id' => $entity,
+                'request_type' => $requestType,
+            ])->{$type};
+        }
+
+        $this->travel(1)->second();
+
+        $requiredHistoryRequestTypes['createCustomerSupportDocs'] = $this->createRealClientRegistrationHistoryModel([
             'entity_id' => $entity,
             'request_type' => 'createCustomerSupportDocs',
-        ]);
+        ])->object_sid;
 
-        $this->travel(1)->day();
+        $this->travel(1)->second();
 
         Queue::fake();
 
@@ -212,9 +228,12 @@ class RegisterClientsTest extends TestCase
         $this->assertOnlyPushedOn(
             'submit-customer-profile-bundle',
             AttachObjectSidToCustomerProfile::class,
-            function (AttachObjectSidToCustomerProfile $job) use ($entity) {
+            function (AttachObjectSidToCustomerProfile $job) use ($entity, $requiredHistoryRequestTypes) {
                 return $job->client == $entity->getClientData() &&
-                       $job->registerService == $this->registerService;
+                       $job->registerService == $this->registerService &&
+                       $job->customerProfilesInstanceSid === $requiredHistoryRequestTypes['createEmptyCustomerProfileStarterBundle'] &&
+                       $job->endUserInstanceSid === $requiredHistoryRequestTypes['createEndUserCustomerProfileInfo'] &&
+                       $job->supportingDocumentInstanceSid === $requiredHistoryRequestTypes['createCustomerSupportDocs'];
             }
         );
     }
@@ -227,12 +246,21 @@ class RegisterClientsTest extends TestCase
         /** @var Entity $entity */
         $entity = factory(Entity::class)->create(self::ENTITY_DATA);
 
+        $this->travel(1)->second();
+
+        $requiredHistoryRequestType = $this->createRealClientRegistrationHistoryModel([
+            'entity_id' => $entity,
+            'request_type' => 'createEmptyCustomerProfileStarterBundle',
+        ])->bundle_sid;
+
+        $this->travel(1)->second();
+
         $this->createRealClientRegistrationHistoryModel([
             'entity_id' => $entity,
             'request_type' => 'attachObjectSidToCustomerProfile',
         ]);
 
-        $this->travel(1)->day();
+        $this->travel(1)->second();
 
         Queue::fake();
 
@@ -242,9 +270,10 @@ class RegisterClientsTest extends TestCase
         $this->assertOnlyPushedOn(
             'submit-customer-profile-bundle',
             EvaluateCustomerProfileBundle::class,
-            function (EvaluateCustomerProfileBundle $job) use ($entity) {
+            function (EvaluateCustomerProfileBundle $job) use ($entity, $requiredHistoryRequestType) {
                 return $job->client == $entity->getClientData() &&
-                       $job->registerService == $this->registerService;
+                       $job->registerService == $this->registerService &&
+                       $job->customerProfileBundleSid === $requiredHistoryRequestType;
             }
         );
     }
@@ -257,12 +286,27 @@ class RegisterClientsTest extends TestCase
         /** @var Entity $entity */
         $entity = factory(Entity::class)->create(self::ENTITY_DATA);
 
-        $this->createRealClientRegistrationHistoryModel([
+        $requiredHistoryRequestTypes = [
+            'createEmptyCustomerProfileStarterBundle' => 'bundle_sid',
+        ];
+
+        foreach ($requiredHistoryRequestTypes as $requestType => $type) {
+            $this->travel(1)->second();
+
+            $requiredHistoryRequestTypes[$requestType] = $this->createRealClientRegistrationHistoryModel([
+                'entity_id' => $entity,
+                'request_type' => $requestType,
+            ])->{$type};
+        }
+
+        $this->travel(1)->second();
+
+        $requiredHistoryRequestTypes['evaluateCustomerProfileBundle'] = $this->createRealClientRegistrationHistoryModel([
             'entity_id' => $entity,
             'request_type' => 'evaluateCustomerProfileBundle',
-        ]);
+        ])->status;
 
-        $this->travel(1)->day();
+        $this->travel(1)->second();
 
         Queue::fake();
 
@@ -272,9 +316,11 @@ class RegisterClientsTest extends TestCase
         $this->assertOnlyPushedOn(
             'submit-customer-profile-bundle',
             SubmitCustomerProfileBundle::class,
-            function (SubmitCustomerProfileBundle $job) use ($entity) {
+            function (SubmitCustomerProfileBundle $job) use ($entity, $requiredHistoryRequestTypes) {
                 return $job->client == $entity->getClientData() &&
-                       $job->registerService == $this->registerService;
+                       $job->registerService == $this->registerService &&
+                       $job->customerProfilesInstanceSid === $requiredHistoryRequestTypes['createEmptyCustomerProfileStarterBundle'] &&
+                       $job->customerProfilesEvaluationsInstanceStatus === $requiredHistoryRequestTypes['evaluateCustomerProfileBundle'];
             }
         );
     }
@@ -292,7 +338,7 @@ class RegisterClientsTest extends TestCase
             'request_type' => 'submitCustomerProfileBundle',
         ]);
 
-        $this->travel(1)->day();
+        $this->travel(1)->second();
 
         Queue::fake();
 
@@ -322,7 +368,7 @@ class RegisterClientsTest extends TestCase
             'request_type' => 'createEmptyA2PStarterTrustBundle',
         ]);
 
-        $this->travel(1)->day();
+        $this->travel(1)->second();
 
         Queue::fake();
 
@@ -348,12 +394,19 @@ class RegisterClientsTest extends TestCase
         /** @var Entity $entity */
         $entity = factory(Entity::class)->create(self::ENTITY_DATA);
 
+        $requiredHistoryRequestType = $this->createRealClientRegistrationHistoryModel([
+            'entity_id' => $entity,
+            'request_type' => 'createEmptyA2PStarterTrustBundle',
+        ])->bundle_sid;
+
+        $this->travel(1)->second();
+
         $this->createRealClientRegistrationHistoryModel([
             'entity_id' => $entity,
             'request_type' => 'assignCustomerProfileA2PTrustBundle',
         ]);
 
-        $this->travel(1)->day();
+        $this->travel(1)->second();
 
         Queue::fake();
 
@@ -363,9 +416,10 @@ class RegisterClientsTest extends TestCase
         $this->assertOnlyPushedOn(
             'submit-a2p-profile-bundle',
             EvaluateA2PStarterProfileBundle::class,
-            function (EvaluateA2PStarterProfileBundle $job) use ($entity) {
+            function (EvaluateA2PStarterProfileBundle $job) use ($entity, $requiredHistoryRequestType) {
                 return $job->client == $entity->getClientData() &&
-                       $job->registerService == $this->registerService;
+                       $job->registerService == $this->registerService &&
+                       $job->trustProductsInstanceSid === $requiredHistoryRequestType;
             }
         );
     }
@@ -378,12 +432,26 @@ class RegisterClientsTest extends TestCase
         /** @var Entity $entity */
         $entity = factory(Entity::class)->create(self::ENTITY_DATA);
 
+        $requiredHistoryRequestTypes = [
+            'createEmptyA2PStarterTrustBundle' => 'bundle_sid',
+            'evaluateA2PStarterProfileBundle' => 'status',
+        ];
+
+        foreach ($requiredHistoryRequestTypes as $requestType => $type) {
+            $this->travel(1)->second();
+
+            $requiredHistoryRequestTypes[$requestType] = $this->createRealClientRegistrationHistoryModel([
+                'entity_id' => $entity,
+                'request_type' => $requestType,
+            ])->{$type};
+        }
+
         $this->createRealClientRegistrationHistoryModel([
             'entity_id' => $entity,
             'request_type' => 'evaluateA2PStarterProfileBundle',
         ]);
 
-        $this->travel(1)->day();
+        $this->travel(1)->second();
 
         Queue::fake();
 
@@ -393,9 +461,11 @@ class RegisterClientsTest extends TestCase
         $this->assertOnlyPushedOn(
             'submit-a2p-profile-bundle',
             SubmitA2PProfileBundle::class,
-            function (SubmitA2PProfileBundle $job) use ($entity) {
+            function (SubmitA2PProfileBundle $job) use ($entity, $requiredHistoryRequestTypes) {
                 return $job->client == $entity->getClientData() &&
-                       $job->registerService == $this->registerService;
+                       $job->registerService == $this->registerService &&
+                       $job->trustProductsInstanceSid === $requiredHistoryRequestTypes['createEmptyA2PStarterTrustBundle'] &&
+                       $job->trustProductsInstanceStatus === $requiredHistoryRequestTypes['evaluateA2PStarterProfileBundle'];
             }
         );
     }
@@ -413,7 +483,7 @@ class RegisterClientsTest extends TestCase
             'request_type' => 'submitA2PProfileBundle',
         ]);
 
-        $this->travel(1)->day();
+        $this->travel(1)->second();
 
         Queue::fake();
 
@@ -443,7 +513,7 @@ class RegisterClientsTest extends TestCase
             'request_type' => 'createA2PBrand',
         ]);
 
-        $this->travel(1)->day();
+        $this->travel(1)->second();
 
         Queue::fake();
 
@@ -473,7 +543,7 @@ class RegisterClientsTest extends TestCase
             'request_type' => 'createMessagingService',
         ]);
 
-        $this->travel(1)->day();
+        $this->travel(1)->second();
 
         Queue::fake();
 
@@ -650,9 +720,17 @@ class RegisterClientsTest extends TestCase
             CreateEmptyCustomerProfileStarterBundle::class,
             CreateEndUserCustomerProfileInfo::class,
             CreateCustomerProfileAddress::class,
-            SubmitA2PTrustBundle::class,
+            CreateCustomerSupportDocs::class,
+            AttachObjectSidToCustomerProfile::class,
+            EvaluateCustomerProfileBundle::class,
+            SubmitCustomerProfileBundle::class,
+            CreateEmptyA2PStarterTrustBundle::class,
+            AssignCustomerProfileA2PTrustBundle::class,
+            EvaluateA2PStarterProfileBundle::class,
+            SubmitA2PProfileBundle::class,
             CreateA2PBrand::class,
             CreateMessagingService::class,
+            AddPhoneNumberToMessagingService::class,
             CreateA2PSmsCampaignUseCase::class,
         ])
             ->filter(fn (string $class) => $class !== $job)

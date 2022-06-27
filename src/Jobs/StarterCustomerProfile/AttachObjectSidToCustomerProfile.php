@@ -10,11 +10,11 @@ use Twilio\Exceptions\TwilioException;
 
 class AttachObjectSidToCustomerProfile extends AbstractMainJob
 {
-    private string $endUserInstanceSid;
+    public string $endUserInstanceSid;
 
-    private string $supportingDocumentInstanceSid;
+    public string $supportingDocumentInstanceSid;
 
-    private string $customerProfilesInstanceSid;
+    public string $customerProfilesInstanceSid;
 
     public function __construct(RegisterService $registerService, ClientData $client)
     {

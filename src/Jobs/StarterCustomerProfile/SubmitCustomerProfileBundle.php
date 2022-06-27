@@ -11,9 +11,9 @@ use Twilio\Exceptions\TwilioException;
 
 class SubmitCustomerProfileBundle extends AbstractMainJob
 {
-    private string $customerProfilesEvaluationsInstanceStatus;
+    public string $customerProfilesEvaluationsInstanceStatus;
 
-    private string $customerProfilesInstanceSid;
+    public string $customerProfilesInstanceSid;
 
     public function __construct(RegisterService $registerService, ClientData $client)
     {

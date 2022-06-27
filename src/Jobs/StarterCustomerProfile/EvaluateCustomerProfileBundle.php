@@ -10,7 +10,7 @@ use Twilio\Exceptions\TwilioException;
 
 class EvaluateCustomerProfileBundle extends AbstractMainJob
 {
-    private string $customerProfileBundleSid;
+    public string $customerProfileBundleSid;
 
     public function __construct(RegisterService $registerService, ClientData $client)
     {

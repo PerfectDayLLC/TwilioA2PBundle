@@ -41,7 +41,7 @@ class ClientRegistrationHistoryResponseDataTest extends TestCase
     }
 
     /**
-     * @depends test_client_registration_history_response_data_getters
+     * @depends test_getters
      * @dataProvider arrayDataSetterProvider
      */
     public function test_setters(string $field, $value, string $getter): void

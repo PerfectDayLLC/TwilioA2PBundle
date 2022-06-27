@@ -24,10 +24,9 @@ class SubmitA2PProfileBundle extends AbstractMainJob
             $client->getId()
         );
 
-        $this->trustProductsInstanceStatus = ClientRegistrationHistory::getSidForAllowedStatuses(
+        $this->trustProductsInstanceStatus = ClientRegistrationHistory::getStatusForAllowedStatuses(
             'evaluateA2PStarterProfileBundle',
-            $client->getId(),
-            false
+            $client->getId()
         );
     }
 
