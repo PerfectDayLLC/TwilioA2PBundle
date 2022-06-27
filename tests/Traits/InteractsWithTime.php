@@ -3,8 +3,8 @@
 namespace PerfectDayLlc\TwilioA2PBundle\Tests\Traits;
 
 use DateTimeInterface;
-use PerfectDayLlc\TwilioA2PBundle\Tests\Wormhole;
 use Illuminate\Support\Carbon;
+use PerfectDayLlc\TwilioA2PBundle\Tests\Wormhole;
 
 trait InteractsWithTime
 {

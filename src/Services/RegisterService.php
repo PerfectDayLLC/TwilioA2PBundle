@@ -2,7 +2,6 @@
 
 namespace PerfectDayLlc\TwilioA2PBundle\Services;
 
-use Illuminate\Support\Str;
 use PerfectDayLlc\TwilioA2PBundle\Entities\ClientData;
 use PerfectDayLlc\TwilioA2PBundle\Entities\ClientRegistrationHistoryResponseData;
 use PerfectDayLlc\TwilioA2PBundle\Entities\Status;
@@ -51,6 +50,7 @@ class RegisterService
 
     /**
      * @deprecated
+     *
      * @throws TwilioException
      */
     public function createAndSubmitCustomerProfile(ClientData $client): ?CustomerProfilesInstance
@@ -74,7 +74,7 @@ class RegisterService
 
         /**
          * Assign end-user, supporting document, and primary customer profile to the empty customer profile that
-         * you created
+         * you created.
          *
          * DONE - NEED TO GET $endUserInstance AND $supportingDocumentInstance ON THE JOB
          */
@@ -148,7 +148,7 @@ class RegisterService
     public function createEmptyCustomerProfileStarterBundle(ClientData $client): CustomerProfilesInstance
     {
         /**
-         * Delay before requests
+         * Delay before requests.
          *
          * @link https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api
          */
@@ -191,13 +191,14 @@ class RegisterService
     }
 
     /**
-     * Create end-user object of type: customer_profile_information
+     * Create end-user object of type: customer_profile_information.
+     *
      * @throws TwilioException
      */
     public function createEndUserCustomerProfileInfo(ClientData $client): EndUserInstance
     {
         /**
-         * Delay before requests
+         * Delay before requests.
          *
          * @link https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api
          */
@@ -246,14 +247,14 @@ class RegisterService
     }
 
     /**
-     * Create supporting document: customer_profile_address
+     * Create supporting document: customer_profile_address.
      *
      * @throws TwilioException
      */
     public function createCustomerProfileAddress(ClientData $client): AddressInstance
     {
         /**
-         * Delay before requests
+         * Delay before requests.
          *
          * @link https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api
          */
@@ -297,7 +298,7 @@ class RegisterService
     }
 
     /**
-     * Create Customer Support Docs
+     * Create Customer Support Docs.
      *
      * @throws TwilioException
      */
@@ -308,7 +309,7 @@ class RegisterService
         array $attributes
     ): SupportingDocumentInstance {
         /**
-         * Delay before requests
+         * Delay before requests.
          *
          * @link https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api
          */
@@ -358,7 +359,7 @@ class RegisterService
         string $objectSid
     ): void {
         /**
-         * Delay before requests
+         * Delay before requests.
          *
          * @link https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api
          */
@@ -398,7 +399,7 @@ class RegisterService
     }
 
     /**
-     * Evaluate the Customer Profile
+     * Evaluate the Customer Profile.
      *
      * @throws TwilioException
      */
@@ -407,7 +408,7 @@ class RegisterService
         string $customerProfileBundleSid
     ): CustomerProfilesEvaluationsInstance {
         /**
-         * Delay before requests
+         * Delay before requests.
          *
          * @link https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api
          */
@@ -450,7 +451,7 @@ class RegisterService
     }
 
     /**
-     * Submit the Customer Profile for review
+     * Submit the Customer Profile for review.
      *
      * @throws TwilioException
      */
@@ -459,7 +460,7 @@ class RegisterService
         string $customerProfileBundleSid
     ): CustomerProfilesInstance {
         /**
-         * Delay before requests
+         * Delay before requests.
          *
          * @link https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api
          */
@@ -504,7 +505,7 @@ class RegisterService
     public function createEmptyA2PStarterTrustBundle(ClientData $client): TrustProductsInstance
     {
         /**
-         * Delay before requests
+         * Delay before requests.
          *
          * @link https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api
          */
@@ -555,7 +556,7 @@ class RegisterService
         string $customerProfileSid
     ): void {
         /**
-         * Delay before requests
+         * Delay before requests.
          *
          * @link https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api
          */
@@ -603,7 +604,7 @@ class RegisterService
         string $trustBundleSid
     ): TrustProductsEvaluationsInstance {
         /**
-         * Delay before requests
+         * Delay before requests.
          *
          * @link https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api
          */
@@ -652,7 +653,7 @@ class RegisterService
     public function submitA2PProfileBundle(ClientData $client, string $trustBundleSid): TrustProductsInstance
     {
         /**
-         * Delay before requests
+         * Delay before requests.
          *
          * @link https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api
          */
@@ -695,6 +696,7 @@ class RegisterService
 
     /**
      * @throws TwilioException
+     *
      * @see https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api#31-get-the-brand-registration-status
      */
     public function createA2PBrand(
@@ -703,7 +705,7 @@ class RegisterService
         string $customerProfileBundleSid
     ): BrandRegistrationInstance {
         /**
-         * Delay before requests
+         * Delay before requests.
          *
          * @link https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api
          */
@@ -754,7 +756,7 @@ class RegisterService
     public function createMessagingService(ClientData $client): ServiceInstance
     {
         /**
-         * Delay before requests
+         * Delay before requests.
          *
          * @link https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api
          */
@@ -805,7 +807,7 @@ class RegisterService
         string $messageServiceSid
     ): PhoneNumberInstance {
         /**
-         * Delay before requests
+         * Delay before requests.
          *
          * @link https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api
          */
@@ -852,7 +854,7 @@ class RegisterService
         string $messagingServiceSid
     ): UsAppToPersonInstance {
         /**
-         * Delay before requests
+         * Delay before requests.
          *
          * @link https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api
          */

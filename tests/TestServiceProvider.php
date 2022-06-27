@@ -5,7 +5,6 @@ namespace PerfectDayLlc\TwilioA2PBundle\Tests;
 use Faker\Generator;
 use Illuminate\Database\Eloquent\Factory;
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Str;
 
 class TestServiceProvider extends ServiceProvider
 {
