@@ -21,7 +21,6 @@ use PerfectDayLlc\TwilioA2PBundle\Jobs\StarterCustomerProfile\CreateEmptyCustome
 use PerfectDayLlc\TwilioA2PBundle\Jobs\StarterCustomerProfile\CreateEndUserCustomerProfileInfo;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\StarterCustomerProfile\EvaluateCustomerProfileBundle;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\StarterCustomerProfile\SubmitCustomerProfileBundle;
-use PerfectDayLlc\TwilioA2PBundle\Jobs\SubmitA2PTrustBundle;
 use PerfectDayLlc\TwilioA2PBundle\Models\ClientRegistrationHistory;
 use PerfectDayLlc\TwilioA2PBundle\Services\RegisterService;
 use PerfectDayLlc\TwilioA2PBundle\Tests\Fake\Models\Entity;
@@ -566,7 +565,7 @@ class RegisterClientsTest extends TestCase
      */
     public function test_command_should_dispatch_create_a2p_sms_campaign_use_case_job_when_specific_request_type_is_found_and_one_day_passed(
         string $originalRequestType,
-        array  $requiredHistoryRequestTypes
+        array $requiredHistoryRequestTypes
     ): void {
         /** @var Entity $entity */
         $entity = factory(Entity::class)->create(self::ENTITY_DATA);
@@ -647,7 +646,7 @@ class RegisterClientsTest extends TestCase
         /** @var Entity $entity */
         $this->createRealClientRegistrationHistoryModel([
             'entity_id' => factory(Entity::class)->create(self::ENTITY_DATA),
-            'status' => $status
+            'status' => $status,
         ]);
 
         $this->artisan(RegisterClients::class)
