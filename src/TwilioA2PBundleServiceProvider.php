@@ -3,6 +3,7 @@
 namespace PerfectDayLlc\TwilioA2PBundle;
 
 use Illuminate\Support\ServiceProvider;
+use PerfectDayLlc\TwilioA2PBundle\Console\RegisterClients;
 use PerfectDayLlc\TwilioA2PBundle\Services\RegisterService;
 
 class TwilioA2PBundleServiceProvider extends ServiceProvider
@@ -27,11 +28,11 @@ class TwilioA2PBundleServiceProvider extends ServiceProvider
             $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
 
             $this->publishes([
-                __DIR__.'/../config/twilioa2pbundle.php' => config_path('perfectdayllc/twilioa2pbundle.php')
+                __DIR__.'/../config/twilioa2pbundle.php' => config_path('perfectdayllc/twilioa2pbundle.php'),
             ], 'twilio-a2p-bundle-config');
 
             $this->commands([
-                Commands\RegisterClients::class
+                RegisterClients::class,
             ]);
         }
     }

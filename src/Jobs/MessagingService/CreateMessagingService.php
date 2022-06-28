@@ -1,7 +1,8 @@
 <?php
 
-namespace PerfectDayLlc\TwilioA2PBundle\Jobs;
+namespace PerfectDayLlc\TwilioA2PBundle\Jobs\MessagingService;
 
+use PerfectDayLlc\TwilioA2PBundle\Jobs\AbstractMainJob;
 use Twilio\Exceptions\TwilioException;
 
 class CreateMessagingService extends AbstractMainJob
@@ -11,6 +12,6 @@ class CreateMessagingService extends AbstractMainJob
      */
     public function handle(): void
     {
-        $this->registerService->createMessageServiceWithPhoneNumber($this->client);
+        $this->registerService->createMessagingService($this->client);
     }
 }

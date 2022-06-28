@@ -2,7 +2,6 @@
 
 namespace PerfectDayLlc\TwilioA2PBundle\Services;
 
-use Illuminate\Support\Str;
 use PerfectDayLlc\TwilioA2PBundle\Entities\ClientData;
 use PerfectDayLlc\TwilioA2PBundle\Entities\ClientRegistrationHistoryResponseData;
 use PerfectDayLlc\TwilioA2PBundle\Entities\Status;
@@ -33,7 +32,7 @@ class RegisterService
     protected int $requestDelay;
 
     /**
-     * @link https://www.twilio.com/docs/trust-hub/trusthub-rest-api/console-create-a-primary-customer-profile
+     * @see https://www.twilio.com/docs/trust-hub/trusthub-rest-api/console-create-a-primary-customer-profile
      */
     protected string $primaryCustomerProfileSid;
 
@@ -50,99 +49,18 @@ class RegisterService
     }
 
     /**
+     * Create an empty Starter Customer Profile Bundle.
+     *
      * @throws TwilioException
+     *
+     * @see https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api#12-create-an-empty-starter-customer-profile-bundle
      */
-    public function createAndSubmitCustomerProfile(ClientData $client): ?CustomerProfilesInstance
-    {
-        $customerProfilesInstance = $this->createEmptyCustomerProfileStarterBundle($client);
-
-        // Create end-user object of type: customer_profile_information
-        $endUserInstance = $this->createEndUserCustomerProfileInfo($client);
-
-        // Create supporting document: customer_profile_address
-        $addressInstance = $this->createCustomerProfileAddress($client);
-
-        // Create Customer Support Docs
-        $supportingDocumentInstance = $this->createCustomerSupportDocs(
-            $client,
-            "{$client->getCompanyName()} Document Address",
-            'customer_profile_address',
-            ['address_sids' => $addressInstance->sid]
-        );
-
-        /**
-         * Assign end-user, supporting document, and primary customer profile to the empty customer profile that
-         * you created
-         */
-        $this->attachObjectSidToCustomerProfile($client, $customerProfilesInstance->sid, $endUserInstance->sid);
-        $this->attachObjectSidToCustomerProfile(
-            $client,
-            $customerProfilesInstance->sid,
-            $supportingDocumentInstance->sid
-        );
-        $this->attachObjectSidToCustomerProfile(
-            $client,
-            $customerProfilesInstance->sid,
-            $this->primaryCustomerProfileSid
-        );
-
-        // Evaluate the Customer Profile
-        $customerProfilesEvaluationsInstance = $this->evaluateCustomerProfileBundle(
-            $client,
-            $customerProfilesInstance->sid
-        );
-
-        // Submit the Customer Profile for review
-        return $customerProfilesEvaluationsInstance->status === Status::BUNDLES_COMPLIANT
-            ? $this->submitCustomerProfileBundle($client, $customerProfilesInstance->sid)
-            : null;
-    }
-
-    /**
-     * @throws TwilioException
-     */
-    public function createAndSubmitA2PProfile(ClientData $client, string $customerProfileSid): ?TrustProductsInstance
-    {
-        $trustProductsInstance = $this->createEmptyA2PStarterTrustBundle($client);
-
-        $this->assignCustomerProfileA2PTrustBundle(
-            $client,
-            $trustProductsInstance->sid,
-            $customerProfileSid
-        );
-
-        $trustProductsEvaluationsInstance = $this->evaluateA2PStarterProfileBundle(
-            $client,
-            $trustProductsInstance->sid
-        );
-
-        return $trustProductsEvaluationsInstance->status === Status::BUNDLES_COMPLIANT
-            ? $this->submitA2PProfileBundle($client, $trustProductsInstance->sid)
-            : null;
-    }
-
-    /**
-     * @throws TwilioException
-     */
-    public function createMessageServiceWithPhoneNumber(ClientData $client): ?PhoneNumberInstance
-    {
-        $serviceInstance = $this->createMessagingService($client);
-
-        // Add Phone Number to Messaging Service
-        return $serviceInstance->sid
-            ? $this->addPhoneNumberToMessagingService($client, $serviceInstance->sid)
-            : null;
-    }
-
-    /**
-     * @throws TwilioException
-     */
-    private function createEmptyCustomerProfileStarterBundle(ClientData $client): CustomerProfilesInstance
+    public function createEmptyCustomerProfileStarterBundle(ClientData $client): CustomerProfilesInstance
     {
         /**
-         * Delay before requests
+         * Rate-limiting request.
          *
-         * @link https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api
+         * @see https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api
          */
         sleep($this->requestDelay);
 
@@ -183,14 +101,18 @@ class RegisterService
     }
 
     /**
+     * Create end-user object of type: customer_profile_information.
+     *
      * @throws TwilioException
+     *
+     * @see https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api#12-create-an-empty-starter-customer-profile-bundle
      */
-    private function createEndUserCustomerProfileInfo(ClientData $client): EndUserInstance
+    public function createEndUserCustomerProfileInfo(ClientData $client): EndUserInstance
     {
         /**
-         * Delay before requests
+         * Rate-limiting request.
          *
-         * @link https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api
+         * @see https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api
          */
         sleep($this->requestDelay);
 
@@ -237,14 +159,18 @@ class RegisterService
     }
 
     /**
+     * Create supporting document: customer_profile_address.
+     *
      * @throws TwilioException
+     *
+     * @see https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api#14-create-supporting-document-customer_profile_address
      */
-    private function createCustomerProfileAddress(ClientData $client): AddressInstance
+    public function createCustomerProfileAddress(ClientData $client): AddressInstance
     {
         /**
-         * Delay before requests
+         * Rate-limiting request.
          *
-         * @link https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api
+         * @see https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api
          */
         sleep($this->requestDelay);
 
@@ -286,18 +212,22 @@ class RegisterService
     }
 
     /**
+     * Create Customer Support Docs.
+     *
      * @throws TwilioException
+     *
+     * @see https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api#14-create-supporting-document-customer_profile_address
      */
-    private function createCustomerSupportDocs(
+    public function createCustomerSupportDocs(
         ClientData $client,
         string $documentName,
         string $documentType,
         array $attributes
     ): SupportingDocumentInstance {
         /**
-         * Delay before requests
+         * Rate-limiting request.
          *
-         * @link https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api
+         * @see https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api
          */
         sleep($this->requestDelay);
 
@@ -337,17 +267,22 @@ class RegisterService
     }
 
     /**
+     * Assign end-user, supporting document, and primary customer profile to the empty starter customer profile that
+     * you created.
+     *
      * @throws TwilioException
+     *
+     * @see https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api#15-assign-end-user-supporting-document-and-primary-customer-profile-to-the-empty-starter-customer-profile-that-you-created
      */
-    private function attachObjectSidToCustomerProfile(
+    public function attachObjectSidToCustomerProfile(
         ClientData $client,
         string $customerProfileBundleSid,
         string $objectSid
     ): void {
         /**
-         * Delay before requests
+         * Rate-limiting request.
          *
-         * @link https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api
+         * @see https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api
          */
         sleep($this->requestDelay);
 
@@ -385,16 +320,20 @@ class RegisterService
     }
 
     /**
+     * Evaluate the Customer Profile.
+     *
      * @throws TwilioException
+     *
+     * @see https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api#16-evaluate-the-starter-customer-profile
      */
-    private function evaluateCustomerProfileBundle(
+    public function evaluateCustomerProfileBundle(
         ClientData $client,
         string $customerProfileBundleSid
     ): CustomerProfilesEvaluationsInstance {
         /**
-         * Delay before requests
+         * Rate-limiting request.
          *
-         * @link https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api
+         * @see https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api
          */
         sleep($this->requestDelay);
 
@@ -435,16 +374,20 @@ class RegisterService
     }
 
     /**
+     * Submit the Customer Profile for review.
+     *
      * @throws TwilioException
+     *
+     * @see https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api#17-submit-the-starter-customer-profile-for-review
      */
-    private function submitCustomerProfileBundle(
+    public function submitCustomerProfileBundle(
         ClientData $client,
         string $customerProfileBundleSid
     ): CustomerProfilesInstance {
         /**
-         * Delay before requests
+         * Rate-limiting request.
          *
-         * @link https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api
+         * @see https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api
          */
         sleep($this->requestDelay);
 
@@ -482,14 +425,18 @@ class RegisterService
     }
 
     /**
+     * Create an empty A2P Starter Trust Bundle.
+     *
      * @throws TwilioException
+     *
+     * @see https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api#22-create-an-empty-a2p-starter-trust-bundle
      */
-    private function createEmptyA2PStarterTrustBundle(ClientData $client): TrustProductsInstance
+    public function createEmptyA2PStarterTrustBundle(ClientData $client): TrustProductsInstance
     {
         /**
-         * Delay before requests
+         * Rate-limiting request.
          *
-         * @link https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api
+         * @see https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api
          */
         sleep($this->requestDelay);
 
@@ -530,17 +477,21 @@ class RegisterService
     }
 
     /**
+     * Assign the Starter Customer Profile bundle to the A2P Starter trust bundle.
+     *
      * @throws TwilioException
+     *
+     * @see https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api#23-assign-the-starter-customer-profile-bundle-to-the-a2p-starter-trust-bundle
      */
-    private function assignCustomerProfileA2PTrustBundle(
+    public function assignCustomerProfileA2PTrustBundle(
         ClientData $client,
         string $trustBundleSid,
         string $customerProfileSid
     ): void {
         /**
-         * Delay before requests
+         * Rate-limiting request.
          *
-         * @link https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api
+         * @see https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api
          */
         sleep($this->requestDelay);
 
@@ -579,16 +530,20 @@ class RegisterService
     }
 
     /**
+     * Evaluate the A2P Starter Profile Bundle.
+     *
      * @throws TwilioException
+     *
+     * @see https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api#24-evaluate-the-a2p-starter-profile-bundle
      */
-    private function evaluateA2PStarterProfileBundle(
+    public function evaluateA2PStarterProfileBundle(
         ClientData $client,
         string $trustBundleSid
     ): TrustProductsEvaluationsInstance {
         /**
-         * Delay before requests
+         * Rate-limiting request.
          *
-         * @link https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api
+         * @see https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api
          */
         sleep($this->requestDelay);
 
@@ -630,14 +585,18 @@ class RegisterService
     }
 
     /**
+     * Submit the A2P Starter Profile bundle for review.
+     *
      * @throws TwilioException
+     *
+     * @see https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api#25-submit-the-a2p-starter-profile-bundle-for-review
      */
-    private function submitA2PProfileBundle(ClientData $client, string $trustBundleSid): TrustProductsInstance
+    public function submitA2PProfileBundle(ClientData $client, string $trustBundleSid): TrustProductsInstance
     {
         /**
-         * Delay before requests
+         * Rate-limiting request.
          *
-         * @link https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api
+         * @see https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api
          */
         sleep($this->requestDelay);
 
@@ -677,8 +636,11 @@ class RegisterService
     }
 
     /**
+     * Create an A2P Brand.
+     *
      * @throws TwilioException
-     * @see https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api#31-get-the-brand-registration-status
+     *
+     * @see https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api#3-create-an-a2p-brand
      */
     public function createA2PBrand(
         ClientData $client,
@@ -686,9 +648,9 @@ class RegisterService
         string $customerProfileBundleSid
     ): BrandRegistrationInstance {
         /**
-         * Delay before requests
+         * Rate-limiting request.
          *
-         * @link https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api
+         * @see https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api
          */
         sleep($this->requestDelay);
 
@@ -732,14 +694,18 @@ class RegisterService
     }
 
     /**
+     * Create a Messaging Service.
+     *
      * @throws TwilioException
+     *
+     * @see https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api#4-create-a-messaging-service
      */
     public function createMessagingService(ClientData $client): ServiceInstance
     {
         /**
-         * Delay before requests
+         * Rate-limiting request.
          *
-         * @link https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api
+         * @see https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api
          */
         sleep($this->requestDelay);
 
@@ -781,16 +747,18 @@ class RegisterService
     }
 
     /**
+     * Add a Phone Number to a Messaging Service.
+     *
      * @throws TwilioException
+     *
+     * @see https://www.twilio.com/docs/messaging/services/api/phonenumber-resource#create-a-phonenumber-resource-add-a-phone-number-to-a-messaging-service
      */
-    private function addPhoneNumberToMessagingService(
-        ClientData $client,
-        string $messageServiceSid
-    ): PhoneNumberInstance {
+    public function addPhoneNumberToMessagingService(ClientData $client, string $messageServiceSid): PhoneNumberInstance
+    {
         /**
-         * Delay before requests
+         * Rate-limiting request.
          *
-         * @link https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api
+         * @see https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api
          */
         sleep($this->requestDelay);
 
@@ -827,7 +795,11 @@ class RegisterService
     }
 
     /**
+     * Create an A2P Messaging Campaign use case.
+     *
      * @throws TwilioException
+     *
+     * @see https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api#51-create-an-a2p-messaging-campaign-use-case
      */
     public function createA2PMessagingCampaignUseCase(
         ClientData $client,
@@ -835,9 +807,9 @@ class RegisterService
         string $messagingServiceSid
     ): UsAppToPersonInstance {
         /**
-         * Delay before requests
+         * Rate-limiting request.
          *
-         * @link https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api
+         * @see https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api
          */
         sleep($this->requestDelay);
 
@@ -916,12 +888,12 @@ class RegisterService
             return $name;
         }
 
-        $regex = '/[^a-zA-Z0-9 ]/';
+        $regex = '/[^a-zA-Z\d ]/';
 
         if ($removeSpaces && $removeLetters) {
-            $regex = '/[^0-9]/';
+            $regex = '/\D/';
         } elseif ($removeSpaces) {
-            $regex = '/[^a-zA-Z0-9]/';
+            $regex = '/[^a-zA-Z\d]/';
         }
 
         return preg_replace($regex, '', $name);

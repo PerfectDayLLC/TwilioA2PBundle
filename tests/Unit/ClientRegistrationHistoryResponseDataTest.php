@@ -41,13 +41,13 @@ class ClientRegistrationHistoryResponseDataTest extends TestCase
     }
 
     /**
-     * @depends test_client_registration_history_response_data_getters
+     * @depends test_getters
      * @dataProvider arrayDataSetterProvider
      */
     public function test_setters(string $field, $value, string $getter): void
     {
         $clientRegistrationHistoryResponseData = ClientRegistrationHistoryResponseData::createFromArray([
-            $field => $value
+            $field => $value,
         ]);
 
         $this->assertSame(
@@ -60,13 +60,13 @@ class ClientRegistrationHistoryResponseDataTest extends TestCase
     public function test_status_is_case_insensitive(): void
     {
         $clientRegistrationHistoryResponseData = ClientRegistrationHistoryResponseData::createFromArray([
-            'status' => $status = 'SomE_StaTUs-WORKiNg'
+            'status' => $status = 'SomE_StaTUs-WORKiNg',
         ]);
 
         $this->assertSame(
             Str::lower($status),
             $clientRegistrationHistoryResponseData->getStatus(),
-            "The status is not being lowercase."
+            'The status is not being lowercase.'
         );
     }
 

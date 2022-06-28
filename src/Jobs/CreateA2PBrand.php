@@ -3,7 +3,6 @@
 namespace PerfectDayLlc\TwilioA2PBundle\Jobs;
 
 use PerfectDayLlc\TwilioA2PBundle\Entities\ClientData;
-use PerfectDayLlc\TwilioA2PBundle\Entities\RegisterClientsMethodsSignatureEnum;
 use PerfectDayLlc\TwilioA2PBundle\Models\ClientRegistrationHistory;
 use PerfectDayLlc\TwilioA2PBundle\Services\RegisterService;
 use Twilio\Exceptions\TwilioException;
@@ -21,12 +20,12 @@ class CreateA2PBrand extends AbstractMainJob
         parent::__construct($registerService, $client);
 
         $this->a2PProfileBundleSid = ClientRegistrationHistory::getSidForAllowedStatuses(
-            RegisterClientsMethodsSignatureEnum::SUBMIT_A2P_PROFILE_BUNDLE,
+            'submitA2PProfileBundle',
             $this->client->getId()
         );
 
         $this->customerProfileBundleSid = ClientRegistrationHistory::getSidForAllowedStatuses(
-            RegisterClientsMethodsSignatureEnum::SUBMIT_CUSTOMER_PROFILE_BUNDLE,
+            'submitCustomerProfileBundle',
             $this->client->getId()
         );
     }

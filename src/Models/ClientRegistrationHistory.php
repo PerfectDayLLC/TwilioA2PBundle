@@ -22,6 +22,7 @@ use PerfectDayLlc\TwilioA2PBundle\Entities\Status;
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property \Illuminate\Support\Carbon|null $deleted_at
  * @property-read \PerfectDayLlc\TwilioA2PBundle\Contracts\ClientRegistrationHistory|null $entity
+ *
  * @method static \Illuminate\Database\Eloquent\Builder|static allowedStatuses($types = [])
  * @method static \Illuminate\Database\Query\Builder|static onlyTrashed()
  * @method static \Illuminate\Database\Eloquent\Builder|static query()
@@ -94,13 +95,13 @@ class ClientRegistrationHistory extends Model
 
     private static function isEntityModelUsingUuid(): bool
     {
-        /** @var string $entityModelString */
+        /** @var class-string $entityModelString */
         $entityModelString = config('twilioa2pbundle.entity_model');
 
         /** @var Model $entityModel */
         $entityModel = new $entityModelString;
 
-        return !in_array($entityModel->getKeyType(), ['int', 'integer']);
+        return ! in_array($entityModel->getKeyType(), ['int', 'integer']);
     }
 
     public function entity(): BelongsTo
@@ -119,18 +120,36 @@ class ClientRegistrationHistory extends Model
         return $query->whereIn('status', empty($types) ? self::ALLOWED_STATUSES_TYPES : $types);
     }
 
-    /**
-     * @param  string|int|null  $entityId
-     */
-    public static function getSidForAllowedStatuses(string $requestType, $entityId = null, bool $isBundle = true): ?string
+    private static function getHistory(string $requestType, $entityId): ?ClientRegistrationHistory
     {
-        /** @var static $self */
-        $self = static::allowedStatuses()
+        return static::allowedStatuses()
             ->whereRequestType($requestType)
+            ->whereError(false)
             ->when($entityId, fn (Builder $query) => $query->where('entity_id', $entityId))
             ->latest()
             ->first();
+    }
+
+    /**
+     * @param  string|int|null  $entityId
+     */
+    public static function getSidForAllowedStatuses(
+        string $requestType,
+        $entityId = null,
+        bool $isBundle = true
+    ): ?string {
+        $self = self::getHistory($requestType, $entityId);
 
         return $self ? ($isBundle ? $self->bundle_sid : $self->object_sid) : null;
+    }
+
+    /**
+     * @param  string|int|null  $entityId
+     */
+    public static function getStatusForAllowedStatuses(string $requestType, $entityId = null): ?string
+    {
+        $self = self::getHistory($requestType, $entityId);
+
+        return $self ? $self->status : null;
     }
 }

@@ -1,16 +1,18 @@
 <?php
 
-namespace PerfectDayLlc\TwilioA2PBundle\Jobs;
+namespace PerfectDayLlc\TwilioA2PBundle\Jobs\A2PBrandStarter;
 
 use PerfectDayLlc\TwilioA2PBundle\Entities\ClientData;
-use PerfectDayLlc\TwilioA2PBundle\Entities\RegisterClientsMethodsSignatureEnum;
+use PerfectDayLlc\TwilioA2PBundle\Jobs\AbstractMainJob;
 use PerfectDayLlc\TwilioA2PBundle\Models\ClientRegistrationHistory;
 use PerfectDayLlc\TwilioA2PBundle\Services\RegisterService;
 use Twilio\Exceptions\TwilioException;
 
-class SubmitA2PTrustBundle extends AbstractMainJob
+class AssignCustomerProfileA2PTrustBundle extends AbstractMainJob
 {
-    public ?string $customerProfileBundleSid;
+    public string $customerProfileBundleSid;
+
+    public string $trustProductsInstanceSid;
 
     public function __construct(
         RegisterService $registerService,
@@ -21,9 +23,14 @@ class SubmitA2PTrustBundle extends AbstractMainJob
 
         $this->customerProfileBundleSid = $customerProfileBundleSid ?:
             ClientRegistrationHistory::getSidForAllowedStatuses(
-                RegisterClientsMethodsSignatureEnum::SUBMIT_CUSTOMER_PROFILE_BUNDLE,
+                'submitCustomerProfileBundle',
                 $client->getId()
             );
+
+        $this->trustProductsInstanceSid = ClientRegistrationHistory::getSidForAllowedStatuses(
+            'createEmptyA2PStarterTrustBundle',
+            $client->getId()
+        );
     }
 
     /**
@@ -31,6 +38,10 @@ class SubmitA2PTrustBundle extends AbstractMainJob
      */
     public function handle(): void
     {
-        $this->registerService->createAndSubmitA2PProfile($this->client, $this->customerProfileBundleSid);
+        $this->registerService->assignCustomerProfileA2PTrustBundle(
+            $this->client,
+            $this->trustProductsInstanceSid,
+            $this->customerProfileBundleSid
+        );
     }
 }

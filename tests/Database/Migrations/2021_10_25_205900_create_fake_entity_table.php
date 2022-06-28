@@ -19,7 +19,7 @@ class CreateFakeEntityTable extends Migration
             $table->string('phone_number');
             $table->string('twilio_phone_number_sid');
             $table->string('website');
-            $table->string('contact_first_name');
+            $table->string('contact_first_name')->nullable();
             $table->string('contact_last_name');
             $table->string('contact_email');
             $table->string('contact_phone');

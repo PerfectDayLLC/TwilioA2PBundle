@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Str;
 
+// Have to add it here so older Laravel versions can use this
 if (! function_exists('str_headline')) {
     function str_headline(string $text)
     {
