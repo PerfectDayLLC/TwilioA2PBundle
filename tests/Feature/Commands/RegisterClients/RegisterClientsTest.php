@@ -607,7 +607,7 @@ class RegisterClientsTest extends TestCase
     }
 
     /**
-     * @depends test_command_should_dispatch_a_customer_profile_creation_job_when_there_is_no_entity_history
+     * @depends test_command_should_dispatch_a_submit_customer_profile_bundle_job_when_there_is_history
      */
     public function test_command_should_dispatch_a_job_for_a_desired_entity_using_a_custom_extra_query(): void
     {
@@ -659,7 +659,7 @@ class RegisterClientsTest extends TestCase
     }
 
     /**
-     * @depends test_correct_job_is_dispatched_when_a_previous_job_did_not_successfully_finish_storing_other_status
+     * @depends test_command_should_not_dispatch_any_job_when_the_status_is_not_one_of_the_allowed_ones
      */
     public function test_the_current_loop_is_skipped_when_an_exception_is_thrown(): void
     {
