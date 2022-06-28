@@ -625,12 +625,10 @@ class RegisterClientsTest extends TestCase
         $this->artisan(RegisterClients::class)
             ->assertExitCode(0);
 
-        Queue::assertPushed(SubmitCustomerProfileBundle::class, 1);
-
         $this->assertOnlyPushedOn(
             'submit-customer-profile-bundle',
-            SubmitCustomerProfileBundle::class,
-            function (SubmitCustomerProfileBundle $job) use ($entity) {
+            CreateEmptyCustomerProfileStarterBundle::class,
+            function (CreateEmptyCustomerProfileStarterBundle $job) use ($entity) {
                 return $job->client == $entity->getClientData() &&
                        $job->registerService == $this->registerService;
             }
@@ -676,12 +674,10 @@ class RegisterClientsTest extends TestCase
         $this->artisan(RegisterClients::class)
             ->assertExitCode(0);
 
-        Queue::assertPushed(SubmitCustomerProfileBundle::class, 1);
-
         $this->assertOnlyPushedOn(
             'submit-customer-profile-bundle',
-            SubmitCustomerProfileBundle::class,
-            function (SubmitCustomerProfileBundle $job) use ($entity) {
+            CreateEmptyCustomerProfileStarterBundle::class,
+            function (CreateEmptyCustomerProfileStarterBundle $job) use ($entity) {
                 return $job->client == $entity->getClientData() &&
                        $job->registerService == $this->registerService;
             }
