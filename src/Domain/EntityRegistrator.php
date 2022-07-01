@@ -128,8 +128,11 @@ class EntityRegistrator
                         ->onQueue(static::CREATE_A2P_SMS_CAMPAIGN_USE_CASE_JOB_QUEUE);
 
                     return;
+                case 'createA2PMessagingCampaignUseCase':
+                    // Finished the process.
+                    return;
                 default:
-                    throw new Exception("Unknown Request Type: '".$history->request_type ?? 'null'."'");
+                    throw new Exception("Unknown Request Type: '".($history->request_type ?? 'null')."'");
             }
         } catch (Throwable $exception) {
             Log::error(
