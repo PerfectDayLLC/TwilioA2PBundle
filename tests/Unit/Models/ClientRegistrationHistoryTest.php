@@ -53,14 +53,6 @@ class ClientRegistrationHistoryTest extends TestCase
             'created_at' => now()->minutes(-3),
         ]);
 
-        // Latest but has not allowed status
-        factory(ClientRegistrationHistoryFake::class)->create([
-            'entity_id' => $entity->id,
-            'request_type' => 'messageService',
-            'status' => 'compliant',
-            'created_at' => now()->minutes(-2),
-        ]);
-
         $latestBundleSid = ClientRegistrationHistoryFake::getSidForAllowedStatuses(
             'messageService',
             $entity->id
@@ -81,7 +73,7 @@ class ClientRegistrationHistoryTest extends TestCase
         factory(ClientRegistrationHistoryFake::class)->create([
             'entity_id' => $entity->id,
             'request_type' => 'messageService',
-            'status' => 'compliant',
+            'status' => 'noncompliant',
             'created_at' => now()->minutes(-3),
         ]);
 
@@ -104,8 +96,10 @@ class ClientRegistrationHistoryTest extends TestCase
     public function allowedStatusesProvider(): array
     {
         return [
+            'Bundle Draft' => [Status::BUNDLES_DRAFT],
             'Bundle Pending Review' => [Status::BUNDLES_PENDING_REVIEW],
             'Bundle In Review' => [Status::BUNDLES_IN_REVIEW],
+            'Bundle Compliant' => [Status::BUNDLES_COMPLIANT],
             'Bundle Twilio Approved' => [Status::BUNDLES_TWILIO_APPROVED],
             'Brand Pending' => [Status::BRAND_PENDING],
             'Brand Approved' => [Status::BRAND_APPROVED],
