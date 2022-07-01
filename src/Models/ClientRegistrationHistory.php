@@ -45,8 +45,10 @@ class ClientRegistrationHistory extends Model
     use SoftDeletes;
 
     public const ALLOWED_STATUSES_TYPES = [
+        Status::BUNDLES_DRAFT,
         Status::BUNDLES_PENDING_REVIEW,
         Status::BUNDLES_IN_REVIEW,
+        Status::BUNDLES_COMPLIANT,
         Status::BUNDLES_TWILIO_APPROVED,
         Status::BRAND_PENDING,
         Status::BRAND_APPROVED,

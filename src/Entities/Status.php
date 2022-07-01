@@ -33,6 +33,7 @@ class Status
     public static function getOngoingA2PStatuses(): array
     {
         return [
+            static::BUNDLES_DRAFT,
             static::BUNDLES_PENDING_REVIEW,
             static::BUNDLES_IN_REVIEW,
             static::BUNDLES_TWILIO_APPROVED,

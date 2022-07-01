@@ -185,21 +185,13 @@ class RegisterClientsTest extends TestCase
         /** @var Entity $entity */
         $entity = factory(Entity::class)->create(self::ENTITY_DATA);
 
-        $requiredHistoryRequestTypes = [
-            'createEmptyCustomerProfileStarterBundle' => 'bundle_sid',
-            'createEndUserCustomerProfileInfo' => 'object_sid',
-        ];
-
-        foreach ($requiredHistoryRequestTypes as $requestType => $type) {
-            $this->travel(1)->second();
-
-            $requiredHistoryRequestTypes[$requestType] = $this->createRealClientRegistrationHistoryModel(
-                [
-                    'entity_id' => $entity,
-                    'request_type' => $requestType,
-                ])
-                ->{$type};
-        }
+        $requiredHistoryRequestTypes = $this->requiredHistoryRequestTypes(
+            [
+                'createEmptyCustomerProfileStarterBundle' => ['property' => 'bundle_sid', 'status' => 'draft'],
+                'createEndUserCustomerProfileInfo' => 'object_sid',
+            ],
+            $entity
+        );
 
         $this->travel(1)->second();
 
@@ -207,6 +199,7 @@ class RegisterClientsTest extends TestCase
             [
                 'entity_id' => $entity,
                 'request_type' => 'createCustomerSupportDocs',
+                'status' => 'draft',
             ]
         )
             ->object_sid;
@@ -239,6 +232,7 @@ class RegisterClientsTest extends TestCase
             [
                 'entity_id' => $entity,
                 'request_type' => 'createEmptyCustomerProfileStarterBundle',
+                'status' => 'draft',
             ]
         )
             ->bundle_sid;
@@ -272,21 +266,12 @@ class RegisterClientsTest extends TestCase
         /** @var Entity $entity */
         $entity = factory(Entity::class)->create(self::ENTITY_DATA);
 
-        $requiredHistoryRequestTypes = [
-            'createEmptyCustomerProfileStarterBundle' => 'bundle_sid',
-        ];
-
-        foreach ($requiredHistoryRequestTypes as $requestType => $type) {
-            $this->travel(1)->second();
-
-            $requiredHistoryRequestTypes[$requestType] = $this->createRealClientRegistrationHistoryModel(
-                [
-                    'entity_id' => $entity,
-                    'request_type' => $requestType,
-                ]
-            )
-                ->{$type};
-        }
+        $requiredHistoryRequestTypes = $this->requiredHistoryRequestTypes(
+            [
+                'createEmptyCustomerProfileStarterBundle' => ['property' => 'bundle_sid', 'status' => 'draft'],
+            ],
+            $entity
+        );
 
         $this->travel(1)->second();
 
@@ -294,6 +279,7 @@ class RegisterClientsTest extends TestCase
             [
                 'entity_id' => $entity,
                 'request_type' => 'evaluateCustomerProfileBundle',
+                'status' => 'compliant',
             ]
         )
             ->status;
@@ -350,6 +336,7 @@ class RegisterClientsTest extends TestCase
         $history = $this->createRealClientRegistrationHistoryModel([
             'entity_id' => $entity,
             'request_type' => 'createEmptyA2PStarterTrustBundle',
+            'status' => 'draft',
         ]);
 
         $this->artisan(RegisterClients::class)
@@ -378,6 +365,7 @@ class RegisterClientsTest extends TestCase
             [
                 'entity_id' => $entity,
                 'request_type' => 'createEmptyA2PStarterTrustBundle',
+                'status' => 'draft',
             ]
         )
             ->bundle_sid;
@@ -411,27 +399,20 @@ class RegisterClientsTest extends TestCase
         /** @var Entity $entity */
         $entity = factory(Entity::class)->create(self::ENTITY_DATA);
 
-        $requiredHistoryRequestTypes = [
-            'createEmptyA2PStarterTrustBundle' => 'bundle_sid',
-            'evaluateA2PStarterProfileBundle' => 'status',
-        ];
+        $requiredHistoryRequestTypes = $this->requiredHistoryRequestTypes(
+            ['createEmptyA2PStarterTrustBundle' => ['property' => 'bundle_sid', 'status' => 'draft']],
+            $entity
+        );
 
-        foreach ($requiredHistoryRequestTypes as $requestType => $type) {
-            $this->travel(1)->second();
+        $this->travel(1)->second();
 
-            $requiredHistoryRequestTypes[$requestType] = $this->createRealClientRegistrationHistoryModel(
-                [
-                    'entity_id' => $entity,
-                    'request_type' => $requestType,
-                ]
-            )
-                ->{$type};
-        }
-
-        $this->createRealClientRegistrationHistoryModel([
-            'entity_id' => $entity,
-            'request_type' => 'evaluateA2PStarterProfileBundle',
-        ]);
+        $requiredHistoryRequestTypes['evaluateA2PStarterProfileBundle'] = $this->createRealClientRegistrationHistoryModel(
+            [
+                'entity_id' => $entity,
+                'request_type' => 'evaluateA2PStarterProfileBundle',
+            ]
+        )
+            ->status;
 
         $this->travel(1)->second();
 
@@ -728,6 +709,34 @@ class RegisterClientsTest extends TestCase
             ->each(function (string $job) {
                 Queue::assertNotPushed($job);
             });
+    }
+
+    private function requiredHistoryRequestTypes(array $requiredHistory, Entity $entity): array
+    {
+        foreach ($requiredHistory as $requestType => $property) {
+            $this->travel(1)->second();
+
+            if (is_array($property)) {
+                $extraProperties = $property;
+
+                unset($extraProperties['property']);
+
+                $property = $property['property'];
+            }
+
+            $requiredHistory[$requestType] = $this->createRealClientRegistrationHistoryModel(
+                array_merge(
+                    [
+                        'entity_id' => $entity,
+                        'request_type' => $requestType,
+                    ],
+                    $extraProperties ?? []
+                )
+            )
+                ->{$property};
+        }
+
+        return $requiredHistory;
     }
 
     public function createSmsCampaignAllowedStatusesProvider(): array
