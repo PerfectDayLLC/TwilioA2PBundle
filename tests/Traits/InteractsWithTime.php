@@ -2,8 +2,8 @@
 
 namespace PerfectDayLlc\TwilioA2PBundle\Tests\Traits;
 
-use Illuminate\Foundation\Testing\Wormhole;
 use Illuminate\Support\Carbon;
+use PerfectDayLlc\TwilioA2PBundle\Tests\Wormhole;
 
 trait InteractsWithTime
 {
