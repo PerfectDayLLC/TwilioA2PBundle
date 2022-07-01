@@ -32,6 +32,7 @@ class StatusTest extends TestCase
             array_diff(
                 Status::getOngoingA2PStatuses(),
                 [
+                    Status::BUNDLES_DRAFT,
                     Status::BUNDLES_PENDING_REVIEW,
                     Status::BUNDLES_IN_REVIEW,
                     Status::BUNDLES_TWILIO_APPROVED,

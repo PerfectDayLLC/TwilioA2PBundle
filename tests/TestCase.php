@@ -24,11 +24,6 @@ class TestCase extends BaseTestCase
         ];
     }
 
-    protected function defineDatabaseMigrations()
-    {
-        $this->loadMigrationsFrom(__DIR__.'/Database/Migrations');
-    }
-
     protected function createRealClientRegistrationHistoryModel(array $parameters = []): ClientRegistrationHistory
     {
         return factory(ClientRegistrationHistoryFake::class)
