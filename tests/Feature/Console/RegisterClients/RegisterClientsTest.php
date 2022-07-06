@@ -1,6 +1,6 @@
 <?php
 
-namespace PerfectDayLlc\TwilioA2PBundle\Tests\Feature\Commands\RegisterClients;
+namespace PerfectDayLlc\TwilioA2PBundle\Tests\Feature\Console\RegisterClients;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Log;
