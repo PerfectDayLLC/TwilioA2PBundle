@@ -2,62 +2,19 @@
 
 namespace PerfectDayLlc\TwilioA2PBundle\Tests\Feature\Console\RegisterClients;
 
+use Exception;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Queue;
+use Mockery;
 use PerfectDayLlc\TwilioA2PBundle\Console\RegisterClients;
-use PerfectDayLlc\TwilioA2PBundle\Entities\Status;
-use PerfectDayLlc\TwilioA2PBundle\Jobs\A2PBrandStarter\AssignCustomerProfileA2PTrustBundle;
-use PerfectDayLlc\TwilioA2PBundle\Jobs\A2PBrandStarter\CreateEmptyA2PStarterTrustBundle;
-use PerfectDayLlc\TwilioA2PBundle\Jobs\A2PBrandStarter\EvaluateA2PStarterProfileBundle;
-use PerfectDayLlc\TwilioA2PBundle\Jobs\A2PBrandStarter\SubmitA2PProfileBundle;
-use PerfectDayLlc\TwilioA2PBundle\Jobs\CreateA2PBrand;
-use PerfectDayLlc\TwilioA2PBundle\Jobs\CreateA2PSmsCampaignUseCase;
-use PerfectDayLlc\TwilioA2PBundle\Jobs\MessagingService\AddPhoneNumberToMessagingService;
-use PerfectDayLlc\TwilioA2PBundle\Jobs\MessagingService\CreateMessagingService;
-use PerfectDayLlc\TwilioA2PBundle\Jobs\StarterCustomerProfile\AttachObjectSidToCustomerProfile;
-use PerfectDayLlc\TwilioA2PBundle\Jobs\StarterCustomerProfile\CreateCustomerProfileAddress;
-use PerfectDayLlc\TwilioA2PBundle\Jobs\StarterCustomerProfile\CreateCustomerSupportDocs;
-use PerfectDayLlc\TwilioA2PBundle\Jobs\StarterCustomerProfile\CreateEmptyCustomerProfileStarterBundle;
-use PerfectDayLlc\TwilioA2PBundle\Jobs\StarterCustomerProfile\CreateEndUserCustomerProfileInfo;
-use PerfectDayLlc\TwilioA2PBundle\Jobs\StarterCustomerProfile\EvaluateCustomerProfileBundle;
-use PerfectDayLlc\TwilioA2PBundle\Jobs\StarterCustomerProfile\SubmitCustomerProfileBundle;
-use PerfectDayLlc\TwilioA2PBundle\Models\ClientRegistrationHistory;
-use PerfectDayLlc\TwilioA2PBundle\Services\RegisterService;
+use PerfectDayLlc\TwilioA2PBundle\Facades\EntityRegistrator;
 use PerfectDayLlc\TwilioA2PBundle\Tests\Fake\Models\Entity;
 use PerfectDayLlc\TwilioA2PBundle\Tests\TestCase;
+use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputDefinition;
 
 class RegisterClientsTest extends TestCase
 {
-    private const ENTITY_DATA = [
-        'company_name' => 'test company',
-        'address' => 'Address 123 A',
-        'city' => 'Tampa',
-        'state' => 'FL',
-        'zip' => '33603',
-        'country' => 'US',
-        'phone_number' => '+11234567789',
-        'twilio_phone_number_sid' => 'PN5Y2SFD389D6123AK',
-        'website' => 'https://fake.url.com',
-        'contact_first_name' => 'John',
-        'contact_last_name' => 'Doe',
-        'contact_email' => 'john.doe@gmail.net',
-        'contact_phone' => '+11234567777',
-        'webhook_url' => 'https://webhook.url/123/abc',
-        'fallback_webhook_url' => 'https://fallbackwebhook.url/abc/123',
-    ];
-
-    private RegisterService $registerService;
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        $this->registerService = $this->createExpectedService();
-
-        Queue::fake();
-    }
-
     protected function tearDown(): void
     {
         Entity::$customQuery = null;
@@ -65,695 +22,294 @@ class RegisterClientsTest extends TestCase
         parent::tearDown();
     }
 
-    public function test_command_has_correct_data(): void
+    public function test_command_is_correctly_setup(): void
     {
         $command = new RegisterClients;
 
-        $this->assertSame($command->getName(), 'a2p:client-register', 'Wrong signature.');
+        $this->assertSame('a2p:client-register', $command->getName(), 'Wrong signature.');
+
+        $definition = new InputDefinition;
+        $definition->addArgument(new InputArgument('entity', InputArgument::OPTIONAL));
+
+        $this->assertEquals($definition, $command->getDefinition());
 
         $this->assertSame(
             'Twilio - Register all companies for the A2P 10DLC US carrier standard compliance',
             $command->getDescription(),
-            'Wrong description'
+            'Wrong description.'
         );
     }
 
     /**
-     * @depends test_command_has_correct_data
+     * @depends test_command_is_correctly_setup
      */
-    public function test_command_should_dispatch_a_create_empty_customer_profile_starter_bundle_job_when_there_is_no_entity_history(): void
+    public function test_it_should_use_the_right_entities_when_they_have_no_history(): void
     {
-        /** @var Entity $entity */
-        $entity = factory(Entity::class)->create(self::ENTITY_DATA);
+        /** @var Entity $expectedEntity1 */
+        $expectedEntity1 = factory(Entity::class)->create();
+        /** @var Entity $expectedEntity2 */
+        $expectedEntity2 = factory(Entity::class)->create();
+
+        $spy = EntityRegistrator::spy();
 
         $this->artisan(RegisterClients::class)
             ->assertExitCode(0);
 
-        $this->assertOnlyPushedOn(
-            'submit-customer-profile-bundle',
-            CreateEmptyCustomerProfileStarterBundle::class,
-            function (CreateEmptyCustomerProfileStarterBundle $job) use ($entity) {
-                return $job->client == $entity->getClientData() &&
-                       $job->registerService == $this->registerService;
-            }
-        );
+        $spy->shouldHaveReceived('processEntity')
+            ->twice();
+
+        $spy->shouldHaveReceived('processEntity')
+            ->with(
+                Mockery::on(fn (Entity $actualEntity) => $actualEntity->is($expectedEntity1)),
+            )
+            ->once();
+
+        $spy->shouldHaveReceived('processEntity')
+            ->with(
+                Mockery::on(fn (Entity $actualEntity) => $actualEntity->is($expectedEntity2)),
+            )
+            ->once();
     }
 
     /**
-     * @depends test_command_has_correct_data
+     * @depends test_it_should_use_the_right_entities_when_they_have_no_history
+     * @dataProvider clientRegistrationHistoriesWithStatusesProvider
      */
-    public function test_command_should_dispatch_a_create_end_user_customer_profile_info_job_when_there_is_history(): void
-    {
-        /** @var Entity $entity */
-        $entity = factory(Entity::class)->create(self::ENTITY_DATA);
-
-        $this->createRealClientRegistrationHistoryModel([
-            'entity_id' => $entity,
-            'request_type' => 'createEmptyCustomerProfileStarterBundle',
-        ]);
-
-        $this->artisan(RegisterClients::class)
-            ->assertExitCode(0);
-
-        $this->assertOnlyPushedOn(
-            'submit-customer-profile-bundle',
-            CreateEndUserCustomerProfileInfo::class,
-            function (CreateEndUserCustomerProfileInfo $job) use ($entity) {
-                return $job->client == $entity->getClientData() &&
-                       $job->registerService == $this->registerService;
-            }
-        );
-    }
-
-    /**
-     * @depends test_command_has_correct_data
-     */
-    public function test_command_should_dispatch_a_create_customer_profile_address_job_when_there_is_history(): void
-    {
-        /** @var Entity $entity */
-        $entity = factory(Entity::class)->create(self::ENTITY_DATA);
-
-        $this->createRealClientRegistrationHistoryModel([
-            'entity_id' => $entity,
-            'request_type' => 'createEndUserCustomerProfileInfo',
-        ]);
-
-        $this->artisan(RegisterClients::class)
-            ->assertExitCode(0);
-
-        $this->assertOnlyPushedOn(
-            'submit-customer-profile-bundle',
-            CreateCustomerProfileAddress::class,
-            function (CreateCustomerProfileAddress $job) use ($entity) {
-                return $job->client == $entity->getClientData() &&
-                       $job->registerService == $this->registerService;
-            }
-        );
-    }
-
-    /**
-     * @depends test_command_has_correct_data
-     */
-    public function test_command_should_dispatch_a_create_customer_support_docs_job_when_there_is_history(): void
-    {
-        /** @var Entity $entity */
-        $entity = factory(Entity::class)->create(self::ENTITY_DATA);
-
-        $this->createRealClientRegistrationHistoryModel([
-            'entity_id' => $entity,
-            'request_type' => 'createCustomerProfileAddress',
-        ]);
-
-        $this->artisan(RegisterClients::class)
-            ->assertExitCode(0);
-
-        $this->assertOnlyPushedOn(
-            'submit-customer-profile-bundle',
-            CreateCustomerSupportDocs::class,
-            function (CreateCustomerSupportDocs $job) use ($entity) {
-                return $job->client == $entity->getClientData() &&
-                       $job->registerService == $this->registerService;
-            }
-        );
-    }
-
-    /**
-     * @depends test_command_has_correct_data
-     */
-    public function test_command_should_dispatch_a_attach_object_sid_to_customer_profile_job_when_there_is_history(): void
-    {
-        /** @var Entity $entity */
-        $entity = factory(Entity::class)->create(self::ENTITY_DATA);
-
-        $requiredHistoryRequestTypes = $this->requiredHistoryRequestTypes(
-            [
-                'createEmptyCustomerProfileStarterBundle' => ['property' => 'bundle_sid', 'status' => 'draft'],
-                'createEndUserCustomerProfileInfo' => 'object_sid',
-            ],
-            $entity
-        );
-
-        $this->travel(1)->second();
-
-        $requiredHistoryRequestTypes['createCustomerSupportDocs'] = $this->createRealClientRegistrationHistoryModel(
-            [
-                'entity_id' => $entity,
-                'request_type' => 'createCustomerSupportDocs',
-                'status' => 'draft',
-            ]
-        )
-            ->object_sid;
-
-        $this->artisan(RegisterClients::class)
-            ->assertExitCode(0);
-
-        $this->assertOnlyPushedOn(
-            'submit-customer-profile-bundle',
-            AttachObjectSidToCustomerProfile::class,
-            function (AttachObjectSidToCustomerProfile $job) use ($entity, $requiredHistoryRequestTypes) {
-                return $job->client == $entity->getClientData() &&
-                       $job->registerService == $this->registerService &&
-                       $job->customerProfilesInstanceSid === $requiredHistoryRequestTypes['createEmptyCustomerProfileStarterBundle'] &&
-                       $job->endUserInstanceSid === $requiredHistoryRequestTypes['createEndUserCustomerProfileInfo'] &&
-                       $job->supportingDocumentInstanceSid === $requiredHistoryRequestTypes['createCustomerSupportDocs'];
-            }
-        );
-    }
-
-    /**
-     * @depends test_command_has_correct_data
-     */
-    public function test_command_should_dispatch_a_evaluate_customer_profile_bundle_job_when_there_is_history(): void
-    {
-        /** @var Entity $entity */
-        $entity = factory(Entity::class)->create(self::ENTITY_DATA);
-
-        $requiredHistoryRequestType = $this->createRealClientRegistrationHistoryModel(
-            [
-                'entity_id' => $entity,
-                'request_type' => 'createEmptyCustomerProfileStarterBundle',
-                'status' => 'draft',
-            ]
-        )
-            ->bundle_sid;
-
-        $this->travel(1)->second();
-
-        $this->createRealClientRegistrationHistoryModel([
-            'entity_id' => $entity,
-            'request_type' => 'attachObjectSidToCustomerProfile',
-        ]);
-
-        $this->artisan(RegisterClients::class)
-            ->assertExitCode(0);
-
-        $this->assertOnlyPushedOn(
-            'submit-customer-profile-bundle',
-            EvaluateCustomerProfileBundle::class,
-            function (EvaluateCustomerProfileBundle $job) use ($entity, $requiredHistoryRequestType) {
-                return $job->client == $entity->getClientData() &&
-                       $job->registerService == $this->registerService &&
-                       $job->customerProfileBundleSid === $requiredHistoryRequestType;
-            }
-        );
-    }
-
-    /**
-     * @depends test_command_has_correct_data
-     */
-    public function test_command_should_dispatch_a_submit_customer_profile_bundle_job_when_there_is_history(): void
-    {
-        /** @var Entity $entity */
-        $entity = factory(Entity::class)->create(self::ENTITY_DATA);
-
-        $requiredHistoryRequestTypes = $this->requiredHistoryRequestTypes(
-            [
-                'createEmptyCustomerProfileStarterBundle' => ['property' => 'bundle_sid', 'status' => 'draft'],
-            ],
-            $entity
-        );
-
-        $this->travel(1)->second();
-
-        $requiredHistoryRequestTypes['evaluateCustomerProfileBundle'] = $this->createRealClientRegistrationHistoryModel(
-            [
-                'entity_id' => $entity,
-                'request_type' => 'evaluateCustomerProfileBundle',
-                'status' => 'compliant',
-            ]
-        )
-            ->status;
-
-        $this->artisan(RegisterClients::class)
-            ->assertExitCode(0);
-
-        $this->assertOnlyPushedOn(
-            'submit-customer-profile-bundle',
-            SubmitCustomerProfileBundle::class,
-            function (SubmitCustomerProfileBundle $job) use ($entity, $requiredHistoryRequestTypes) {
-                return $job->client == $entity->getClientData() &&
-                       $job->registerService == $this->registerService &&
-                       $job->customerProfilesInstanceSid === $requiredHistoryRequestTypes['createEmptyCustomerProfileStarterBundle'] &&
-                       $job->customerProfilesEvaluationsInstanceStatus === $requiredHistoryRequestTypes['evaluateCustomerProfileBundle'];
-            }
-        );
-    }
-
-    /**
-     * @depends test_command_has_correct_data
-     */
-    public function test_command_should_dispatch_a_create_empty_a2p_starter_trust_bundle_job_when_specific_request_type_is_found(): void
-    {
-        /** @var Entity $entity */
-        $entity = factory(Entity::class)->create(self::ENTITY_DATA);
-
-        $this->createRealClientRegistrationHistoryModel([
-            'entity_id' => $entity,
-            'request_type' => 'submitCustomerProfileBundle',
-        ]);
-
-        $this->artisan(RegisterClients::class)
-            ->assertExitCode(0);
-
-        $this->assertOnlyPushedOn(
-            'submit-a2p-profile-bundle',
-            CreateEmptyA2PStarterTrustBundle::class,
-            function (CreateEmptyA2PStarterTrustBundle $job) use ($entity) {
-                return $job->client == $entity->getClientData() &&
-                       $job->registerService == $this->registerService;
-            }
-        );
-    }
-
-    /**
-     * @depends test_command_has_correct_data
-     */
-    public function test_command_should_dispatch_a_assign_customer_profile_a2p_trust_bundle_job_when_specific_request_type_is_found(): void
-    {
-        /** @var Entity $entity */
-        $entity = factory(Entity::class)->create(self::ENTITY_DATA);
-
-        $history = $this->createRealClientRegistrationHistoryModel([
-            'entity_id' => $entity,
-            'request_type' => 'createEmptyA2PStarterTrustBundle',
-            'status' => 'draft',
-        ]);
-
-        $this->artisan(RegisterClients::class)
-            ->assertExitCode(0);
-
-        $this->assertOnlyPushedOn(
-            'submit-a2p-profile-bundle',
-            AssignCustomerProfileA2PTrustBundle::class,
-            function (AssignCustomerProfileA2PTrustBundle $job) use ($entity, $history) {
-                return $job->client == $entity->getClientData() &&
-                       $job->registerService == $this->registerService &&
-                       $job->customerProfileBundleSid === $history->bundle_sid;
-            }
-        );
-    }
-
-    /**
-     * @depends test_command_has_correct_data
-     */
-    public function test_command_should_dispatch_a_evaluate_a2p_starter_profile_bundle_job_when_specific_request_type_is_found(): void
-    {
-        /** @var Entity $entity */
-        $entity = factory(Entity::class)->create(self::ENTITY_DATA);
-
-        $requiredHistoryRequestType = $this->createRealClientRegistrationHistoryModel(
-            [
-                'entity_id' => $entity,
-                'request_type' => 'createEmptyA2PStarterTrustBundle',
-                'status' => 'draft',
-            ]
-        )
-            ->bundle_sid;
-
-        $this->travel(1)->second();
-
-        $this->createRealClientRegistrationHistoryModel([
-            'entity_id' => $entity,
-            'request_type' => 'assignCustomerProfileA2PTrustBundle',
-        ]);
-
-        $this->artisan(RegisterClients::class)
-            ->assertExitCode(0);
-
-        $this->assertOnlyPushedOn(
-            'submit-a2p-profile-bundle',
-            EvaluateA2PStarterProfileBundle::class,
-            function (EvaluateA2PStarterProfileBundle $job) use ($entity, $requiredHistoryRequestType) {
-                return $job->client == $entity->getClientData() &&
-                       $job->registerService == $this->registerService &&
-                       $job->trustProductsInstanceSid === $requiredHistoryRequestType;
-            }
-        );
-    }
-
-    /**
-     * @depends test_command_has_correct_data
-     */
-    public function test_command_should_dispatch_a_submit_a2p_profile_bundle_job_when_specific_request_type_is_found(): void
-    {
-        /** @var Entity $entity */
-        $entity = factory(Entity::class)->create(self::ENTITY_DATA);
-
-        $requiredHistoryRequestTypes = $this->requiredHistoryRequestTypes(
-            ['createEmptyA2PStarterTrustBundle' => ['property' => 'bundle_sid', 'status' => 'draft']],
-            $entity
-        );
-
-        $this->travel(1)->second();
-
-        $requiredHistoryRequestTypes['evaluateA2PStarterProfileBundle'] = $this->createRealClientRegistrationHistoryModel(
-            [
-                'entity_id' => $entity,
-                'request_type' => 'evaluateA2PStarterProfileBundle',
-            ]
-        )
-            ->status;
-
-        $this->travel(1)->second();
-
-        Queue::fake();
-
-        $this->artisan(RegisterClients::class)
-            ->assertExitCode(0);
-
-        $this->assertOnlyPushedOn(
-            'submit-a2p-profile-bundle',
-            SubmitA2PProfileBundle::class,
-            function (SubmitA2PProfileBundle $job) use ($entity, $requiredHistoryRequestTypes) {
-                return $job->client == $entity->getClientData() &&
-                       $job->registerService == $this->registerService &&
-                       $job->trustProductsInstanceSid === $requiredHistoryRequestTypes['createEmptyA2PStarterTrustBundle'] &&
-                       $job->trustProductsInstanceStatus === $requiredHistoryRequestTypes['evaluateA2PStarterProfileBundle'];
-            }
-        );
-    }
-
-    /**
-     * @depends test_command_has_correct_data
-     */
-    public function test_command_should_dispatch_create_a2p_brand_job_when_specific_request_type_is_found(): void
-    {
-        /** @var Entity $entity */
-        $entity = factory(Entity::class)->create(self::ENTITY_DATA);
-
-        $this->createRealClientRegistrationHistoryModel([
-            'entity_id' => $entity,
-            'request_type' => 'submitA2PProfileBundle',
-        ]);
-
-        $this->artisan(RegisterClients::class)
-            ->assertExitCode(0);
-
-        $this->assertOnlyPushedOn(
-            'create-a2p-brand-job',
-            CreateA2PBrand::class,
-            function (CreateA2pBrand $job) use ($entity) {
-                return $job->client == $entity->getClientData() &&
-                       $job->registerService == $this->registerService;
-            }
-        );
-    }
-
-    /**
-     * @depends test_command_has_correct_data
-     */
-    public function test_command_should_dispatch_a_create_messaging_service_job_when_specific_request_type_is_found(): void
-    {
-        /** @var Entity $entity */
-        $entity = factory(Entity::class)->create(self::ENTITY_DATA);
-
-        $this->createRealClientRegistrationHistoryModel([
-            'entity_id' => $entity,
-            'request_type' => 'createA2PBrand',
-        ]);
-
-        $this->artisan(RegisterClients::class)
-            ->assertExitCode(0);
-
-        $this->assertOnlyPushedOn(
-            'create-messaging-service',
-            CreateMessagingService::class,
-            function (CreateMessagingService $job) use ($entity) {
-                return $job->client == $entity->getClientData() &&
-                       $job->registerService == $this->registerService;
-            }
-        );
-    }
-
-    /**
-     * @depends test_command_has_correct_data
-     */
-    public function test_command_should_dispatch_a_add_phone_number_to_messaging_service_job_when_specific_request_type_is_found(): void
-    {
-        /** @var Entity $entity */
-        $entity = factory(Entity::class)->create(self::ENTITY_DATA);
-
-        $this->createRealClientRegistrationHistoryModel([
-            'entity_id' => $entity,
-            'request_type' => 'createMessagingService',
-        ]);
-
-        $this->artisan(RegisterClients::class)
-            ->assertExitCode(0);
-
-        $this->assertOnlyPushedOn(
-            'create-messaging-service',
-            AddPhoneNumberToMessagingService::class,
-            function (AddPhoneNumberToMessagingService $job) use ($entity) {
-                return $job->client == $entity->getClientData() &&
-                       $job->registerService == $this->registerService;
-            }
-        );
-    }
-
-    /**
-     * @depends test_command_has_correct_data
-     * @dataProvider createSmsCampaignAllowedStatusesProvider
-     */
-    public function test_command_should_dispatch_a_create_a2p_sms_campaign_use_case_job_when_specific_request_type_is_found_and_one_day_passed(
-        string $originalRequestType,
-        array $requiredHistoryRequestTypes
+    public function test_it_should_use_the_right_entity_when_history_has_expected_status(
+        string $status,
+        bool $error
     ): void {
-        /** @var Entity $entity */
-        $entity = factory(Entity::class)->create(self::ENTITY_DATA);
+        /** @var Entity $expectedEntity */
+        $expectedEntity = factory(Entity::class)->create();
 
-        foreach ($requiredHistoryRequestTypes as $requestType) {
-            $this->travel(1)->second();
-
+        if (! $error) {
             $this->createRealClientRegistrationHistoryModel([
-                'entity_id' => $entity,
-                'request_type' => $requestType,
+                'entity_id' => $expectedEntity,
+                'status' => $status,
+                'error' => true,
             ]);
+
+            $this->travel(1)->second();
         }
 
+        $this->createRealClientRegistrationHistoryModel([
+            'entity_id' => $expectedEntity,
+            'status' => $status,
+            'error' => $error,
+        ]);
+
+        $spyRegistrator = EntityRegistrator::spy();
+        $spyLogger = Log::spy();
+
+        $this->artisan(RegisterClients::class)
+            ->assertExitCode(0);
+
+        if (! $error) {
+            $spyRegistrator->shouldHaveReceived('processEntity')
+                ->once()
+                ->with(
+                    Mockery::on(fn (Entity $actualEntity) => $actualEntity->is($expectedEntity))
+                );
+        } else {
+            $spyRegistrator->shouldNotHaveReceived('processEntity');
+        }
+
+        $spyLogger->shouldNotHaveReceived('error');
+    }
+
+    /**
+     * @depends test_it_should_use_the_right_entity_when_history_has_expected_status
+     */
+    public function test_should_not_use_an_entity_when_the_latest_history_has_an_error(): void
+    {
+        /** @var Entity $ignoredEntity */
+        $ignoredEntity = factory(Entity::class)->create();
+
+        $this->createRealClientRegistrationHistoryModel(['entity_id' => $ignoredEntity]);
+
         $this->travel(1)->second();
 
-        $this->createRealClientRegistrationHistoryModel([
-            'entity_id' => $entity,
-            'request_type' => $originalRequestType,
-        ]);
+        $this->createRealClientRegistrationHistoryModel(['entity_id' => $ignoredEntity, 'error' => true]);
 
-        $this->travel(1)->day();
+        $spyRegistrator = EntityRegistrator::spy();
+        $spyLogger = Log::spy();
 
         $this->artisan(RegisterClients::class)
             ->assertExitCode(0);
 
-        $this->assertOnlyPushedOn(
-            'create-a2p-sms-campaign-use-case-job',
-            CreateA2PSmsCampaignUseCase::class,
-            function (CreateA2PSmsCampaignUseCase $job) use ($entity) {
-                return $job->client == $entity->getClientData() &&
-                       $job->registerService == $this->registerService;
-            }
-        );
+        $spyRegistrator->shouldNotHaveReceived('processEntity');
+        $spyLogger->shouldNotHaveReceived('error');
     }
 
     /**
-     * @depends test_command_has_correct_data
+     * @depends test_it_should_use_the_right_entities_when_they_have_no_history
+     * @testWith ["pending"]
+     *           ["in_progress"]
+     *           ["verified"]
      */
-    public function test_command_should_not_dispatch_a_job_when_last_request_type_is_found_and_is_successful(): void
+    public function test_it_should_not_use_a_fully_registered_entity(string $status): void
     {
-        /** @var Entity $entity */
-        $entity = factory(Entity::class)->create(self::ENTITY_DATA);
+        /** @var Entity $notExpectedEntity */
+        $notExpectedEntity = factory(Entity::class)->create();
 
         $this->createRealClientRegistrationHistoryModel([
-            'entity_id' => $entity,
-            'request_type' => 'createA2PMessagingCampaignUseCase',
-        ]);
-
-        $spy = Log::spy();
-
-        $this->artisan(RegisterClients::class)
-            ->assertExitCode(0);
-
-        $spy->shouldNotHaveReceived('error');
-
-        Queue::assertNothingPushed();
-    }
-
-    /**
-     * @depends test_command_should_dispatch_a_submit_customer_profile_bundle_job_when_there_is_history
-     */
-    public function test_command_should_dispatch_a_job_for_a_desired_entity_using_a_custom_extra_query(): void
-    {
-        /** @var Entity $entity */
-        $entity = factory(Entity::class)->create(
-            array_merge(self::ENTITY_DATA, ['company_name' => $name = 'desired name'])
-        );
-
-        $entity::$customQuery = function (Builder $query) use ($name) {
-            return $query->where('company_name', $name);
-        };
-
-        $this->artisan(RegisterClients::class)
-            ->assertExitCode(0);
-
-        $this->assertOnlyPushedOn(
-            'submit-customer-profile-bundle',
-            CreateEmptyCustomerProfileStarterBundle::class,
-            function (CreateEmptyCustomerProfileStarterBundle $job) use ($entity) {
-                return $job->client == $entity->getClientData() &&
-                       $job->registerService == $this->registerService;
-            }
-        );
-    }
-
-    /**
-     * @depends test_command_has_correct_data
-     * @dataProvider clientRegistrationHistoriesNotAllowedStatusesProvider
-     */
-    public function test_command_should_not_dispatch_any_job_when_the_status_is_not_one_of_the_allowed_ones(
-        string $status
-    ): void {
-        /** @var Entity $entity */
-        $this->createRealClientRegistrationHistoryModel([
-            'entity_id' => factory(Entity::class)->create(self::ENTITY_DATA),
+            'entity_id' => $notExpectedEntity,
+            'request_type' => 'createEmptyCustomerProfileStarterBundle',
             'status' => $status,
         ]);
 
-        $spy = Log::spy();
+        $this->travel(1)->second();
+
+        $this->createRealClientRegistrationHistoryModel([
+            'entity_id' => $notExpectedEntity,
+            'request_type' => 'createA2PMessagingCampaignUseCase',
+            'status' => $status,
+            'error' => true,
+        ]);
+
+        $this->travel(1)->second();
+
+        /** @var Entity $expectedEntity */
+        $expectedEntity = factory(Entity::class)->create();
+
+        $this->createRealClientRegistrationHistoryModel([
+            'entity_id' => $expectedEntity,
+            'request_type' => 'createEmptyCustomerProfileStarterBundle',
+            'status' => $status,
+        ]);
+
+        $this->travel(1)->second();
+
+        $this->createRealClientRegistrationHistoryModel([
+            'entity_id' => $expectedEntity,
+            'request_type' => 'createA2PMessagingCampaignUseCase',
+            'status' => $status
+        ]);
+
+        $spy = EntityRegistrator::spy();
 
         $this->artisan(RegisterClients::class)
             ->assertExitCode(0);
 
-        $spy->shouldNotHaveReceived('error');
-
-        Queue::assertNothingPushed();
+        $spy->shouldNotHaveReceived('processEntity');
     }
 
     /**
-     * @depends test_command_should_not_dispatch_any_job_when_the_status_is_not_one_of_the_allowed_ones
+     * @depends test_it_should_use_the_right_entities_when_they_have_no_history
+     * @testWith [true]
+     *           [false]
+     */
+    public function test_the_right_entity_should_be_get_when_using_a_custom_extra_query(bool $hasHistory): void
+    {
+        /** @var Entity $expectedEntity */
+        $expectedEntity = factory(Entity::class)->create([
+            'company_name' => $name = 'desired name',
+        ]);
+
+        if ($hasHistory) {
+            $this->createRealClientRegistrationHistoryModel(['entity_id' => $expectedEntity->id]);
+        }
+
+        $expectedEntity::$customQuery = fn (Builder $query) => $query->where('company_name', $name);
+
+        $spy = EntityRegistrator::spy();
+
+        $this->artisan(RegisterClients::class)
+            ->assertExitCode(0);
+
+        $spy->shouldHaveReceived('processEntity')
+            ->once()
+            ->with(
+                Mockery::on(fn (Entity $entity) => $entity->is($expectedEntity))
+            );
+    }
+
+    /**
+     * @depends test_it_should_use_the_right_entities_when_they_have_no_history
+     */
+    public function test_passing_an_id_only_runs_that_entity_when_there_is_no_history(): void
+    {
+        factory(Entity::class)->create();
+
+        /** @var Entity $expectedEntity */
+        $expectedEntity = factory(Entity::class)->create();
+
+        $spy = EntityRegistrator::spy();
+
+        $this->artisan(RegisterClients::class, ['entity' => $expectedEntity->getKey()])
+            ->assertExitCode(0);
+
+        $spy->shouldHaveReceived('processEntity')
+            ->once()
+            ->with(
+                Mockery::on(fn (Entity $entity) => $entity->is($expectedEntity))
+            );
+    }
+
+    /**
+     * @depends test_passing_an_id_only_runs_that_entity_when_there_is_no_history
+     */
+    public function test_passing_an_id_only_runs_that_entity_when_there_is_history(): void
+    {
+        $this->createRealClientRegistrationHistoryModel();
+
+        /** @var Entity $expectedEntity */
+        $expectedEntity = factory(Entity::class)->create();
+        $this->createRealClientRegistrationHistoryModel(['entity_id' => $expectedEntity]);
+
+        $spy = EntityRegistrator::spy();
+
+        $this->artisan(RegisterClients::class, ['entity' => $expectedEntity->getKey()])
+            ->assertExitCode(0);
+
+        $spy->shouldHaveReceived('processEntity')
+            ->once()
+            ->with(
+                Mockery::on(fn (Entity $entity) => $entity->is($expectedEntity))
+            );
+    }
+
+    /**
+     * @depends test_it_should_use_the_right_entities_when_they_have_no_history
      */
     public function test_the_current_loop_is_skipped_when_an_exception_is_thrown(): void
     {
-        /** @var Entity $entity */
-        $entity = factory(Entity::class)->create(self::ENTITY_DATA);
+        factory(Entity::class, 2)->create();
 
-        // Faking empty property, so it throws an exception when used on the ClientData entity
-        factory(Entity::class)->create(
-            array_merge(self::ENTITY_DATA, ['contact_first_name' => null])
-        );
+        EntityRegistrator::shouldReceive('processEntity')
+            ->andReturnUsing(
+                function () {
+                    throw new Exception('Testing exception');
+                },
+                fn () => null
+            );
 
-        $spy = Log::spy();
-
-        $this->artisan(RegisterClients::class)
-            ->assertExitCode(0);
-
-        $spy->shouldHaveReceived('error');
-
-        $this->assertOnlyPushedOn(
-            'submit-customer-profile-bundle',
-            CreateEmptyCustomerProfileStarterBundle::class,
-            function (CreateEmptyCustomerProfileStarterBundle $job) use ($entity) {
-                return $job->client == $entity->getClientData() &&
-                       $job->registerService == $this->registerService;
-            }
-        );
-    }
-
-    /**
-     * @depends test_the_current_loop_is_skipped_when_an_exception_is_thrown
-     */
-    public function test_command_should_not_crash_when_unknown_request_type_is_used(): void
-    {
-        /** @var Entity $entity */
-        $entity = factory(Entity::class)->create(self::ENTITY_DATA);
-
-        $this->createRealClientRegistrationHistoryModel([
-            'entity_id' => $entity,
-            'request_type' => $requestType = $this->faker()->word,
-        ]);
-
-        $spy = Log::spy();
+        $spyLog = Log::spy();
 
         $this->artisan(RegisterClients::class)
             ->assertExitCode(0);
 
-        $spy->shouldHaveReceived('error')
+        $spyLog->shouldHaveReceived('error')
             ->once()
-            ->with("Error when processing an entity: Unknown Request Type: '$requestType'", $entity->toArray());
-
-        Queue::assertNothingPushed();
+            ->with('Testing exception');
     }
 
-    private function assertOnlyPushedOn(string $queue, string $job, callable $callable): void
-    {
-        Queue::assertPushed($job, 1);
-
-        Queue::assertPushedOn($queue, $job, $callable);
-
-        // Check all jobs (expect $job) were not pushed
-        collect([
-            CreateEmptyCustomerProfileStarterBundle::class,
-            CreateEndUserCustomerProfileInfo::class,
-            CreateCustomerProfileAddress::class,
-            CreateCustomerSupportDocs::class,
-            AttachObjectSidToCustomerProfile::class,
-            EvaluateCustomerProfileBundle::class,
-            SubmitCustomerProfileBundle::class,
-            CreateEmptyA2PStarterTrustBundle::class,
-            AssignCustomerProfileA2PTrustBundle::class,
-            EvaluateA2PStarterProfileBundle::class,
-            SubmitA2PProfileBundle::class,
-            CreateA2PBrand::class,
-            CreateMessagingService::class,
-            AddPhoneNumberToMessagingService::class,
-            CreateA2PSmsCampaignUseCase::class,
-        ])
-            ->filter(fn (string $class) => $class !== $job)
-            ->each(function (string $job) {
-                Queue::assertNotPushed($job);
-            });
-    }
-
-    private function requiredHistoryRequestTypes(array $requiredHistory, Entity $entity): array
-    {
-        foreach ($requiredHistory as $requestType => $property) {
-            $this->travel(1)->second();
-
-            if (is_array($property)) {
-                $extraProperties = $property;
-
-                unset($extraProperties['property']);
-
-                $property = $property['property'];
-            }
-
-            $requiredHistory[$requestType] = $this->createRealClientRegistrationHistoryModel(
-                array_merge(
-                    [
-                        'entity_id' => $entity,
-                        'request_type' => $requestType,
-                    ],
-                    $extraProperties ?? []
-                )
-            )
-                ->{$property};
-        }
-
-        return $requiredHistory;
-    }
-
-    public function createSmsCampaignAllowedStatusesProvider(): array
+    public function clientRegistrationHistoriesWithStatusesProvider(): array
     {
         return [
-            'Add Phone Number to Messaging Service' => [
-                'addPhoneNumberToMessagingService',
-                ['createA2PBrand', 'createMessagingService'],
-            ],
+            'Draft' => ['draft', false],
+            'Pending Review' => ['pending-review', false],
+            'In Review' => ['in-review', false],
+            'Twilio Approved' => ['twilio-approved', false],
+            'Pending' => ['pending', false],
+            'Executed' => ['executed', false],
+            'Compliant' => ['compliant', true],
+            'Non compliant' => ['noncompliant', true],
+            'Twilio Rejected' => ['twilio-rejected', true],
+            'Approved' => ['approved', true],
+            'Failed' => ['failed', true],
+            'In Progress' => ['in_progress', true],
+            'Exception Error' => ['exception-error', true],
         ];
-    }
-
-    public function clientRegistrationHistoriesNotAllowedStatusesProvider(): array
-    {
-        return collect(Status::getConstants())
-            ->diff(ClientRegistrationHistory::ALLOWED_STATUSES_TYPES)
-            ->mapWithKeys(fn (string $status, string $key) => [str_headline($key) => [$status]])
-            ->toArray();
     }
 }

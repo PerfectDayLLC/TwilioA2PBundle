@@ -36,6 +36,8 @@ class EntityRegistrator
 
     public const CREATE_MESSAGING_SERVICE_QUEUE = 'create-messaging-service';
 
+    public const LAST_REQUEST_TYPE = 'createA2PMessagingCampaignUseCase';
+
     public static function processEntity(ClientRegistrationHistory $entity): void
     {
         $service = resolve(RegisterService::class);
@@ -128,7 +130,7 @@ class EntityRegistrator
                         ->onQueue(static::CREATE_A2P_SMS_CAMPAIGN_USE_CASE_JOB_QUEUE);
 
                     return;
-                case 'createA2PMessagingCampaignUseCase':
+                case self::LAST_REQUEST_TYPE:
                     // Finished the process.
                     return;
                 default:

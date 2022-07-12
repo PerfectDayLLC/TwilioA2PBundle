@@ -89,7 +89,7 @@ class ClientRegistrationHistory extends Model
 
         static::creating(function (self $model): void {
             // Automatically generate a UUID if using them, and not provided.
-            if (self::isEntityModelUsingUuid() && empty($model->{$model->getKeyName()})) {
+            if ($model::isEntityModelUsingUuid() && empty($model->{$model->getKeyName()})) {
                 $model->{$model->getKeyName()} = Str::uuid();
             }
         });
