@@ -2,6 +2,7 @@
 
 namespace PerfectDayLlc\TwilioA2PBundle\Console;
 
+use Closure;
 use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -71,5 +72,16 @@ class RegisterClients extends Command
         );
 
         return 0;
+    }
+
+    private function withProgressBar(int $totalSteps, Closure $callback): void
+    {
+        $bar = $this->output->createProgressBar($totalSteps);
+
+        $bar->start();
+
+        $callback($bar);
+
+        $bar->finish();
     }
 }
