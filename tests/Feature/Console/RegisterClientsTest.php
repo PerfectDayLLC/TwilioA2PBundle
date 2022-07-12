@@ -1,6 +1,6 @@
 <?php
 
-namespace PerfectDayLlc\TwilioA2PBundle\Tests\Feature\Console\RegisterClients;
+namespace PerfectDayLlc\TwilioA2PBundle\Tests\Feature\Console;
 
 use Exception;
 use Illuminate\Database\Eloquent\Builder;
