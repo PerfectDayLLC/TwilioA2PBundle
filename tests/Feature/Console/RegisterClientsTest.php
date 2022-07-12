@@ -183,7 +183,7 @@ class RegisterClientsTest extends TestCase
         $this->createRealClientRegistrationHistoryModel([
             'entity_id' => $expectedEntity,
             'request_type' => 'createA2PMessagingCampaignUseCase',
-            'status' => $status
+            'status' => $status,
         ]);
 
         $spy = EntityRegistrator::spy();
