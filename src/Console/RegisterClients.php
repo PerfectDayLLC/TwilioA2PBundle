@@ -74,7 +74,7 @@ class RegisterClients extends Command
         return 0;
     }
 
-    private function withProgressBar(int $totalSteps, Closure $callback): void
+    public function withProgressBar(int $totalSteps, Closure $callback): void
     {
         $bar = $this->output->createProgressBar($totalSteps);
 
