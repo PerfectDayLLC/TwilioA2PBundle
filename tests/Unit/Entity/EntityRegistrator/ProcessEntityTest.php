@@ -1,6 +1,6 @@
 <?php
 
-namespace PerfectDayLlc\TwilioA2PBundle\Tests\Unit\Entity;
+namespace PerfectDayLlc\TwilioA2PBundle\Tests\Unit\Entity\EntityRegistrator;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Log;
@@ -27,7 +27,7 @@ use PerfectDayLlc\TwilioA2PBundle\Services\RegisterService;
 use PerfectDayLlc\TwilioA2PBundle\Tests\Fake\Models\Entity;
 use PerfectDayLlc\TwilioA2PBundle\Tests\TestCase;
 
-class EntityRegistratorTest extends TestCase
+class ProcessEntityTest extends TestCase
 {
     private const ENTITY_DATA = [
         'company_name' => 'test company',

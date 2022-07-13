@@ -2,8 +2,6 @@
 
 namespace PerfectDayLlc\TwilioA2PBundle\Console;
 
-use Closure;
-use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
@@ -14,7 +12,7 @@ use PerfectDayLlc\TwilioA2PBundle\Facades\EntityRegistrator as EntityRegistrator
 use Symfony\Component\Console\Helper\ProgressBar;
 use Throwable;
 
-class RegisterClients extends Command
+class RegisterClients extends AbstractCommand
 {
     protected $signature = 'a2p:client-register {entity?}';
 
@@ -72,16 +70,5 @@ class RegisterClients extends Command
         );
 
         return 0;
-    }
-
-    public function withProgressBar($totalSteps, Closure $callback): void
-    {
-        $bar = $this->output->createProgressBar($totalSteps);
-
-        $bar->start();
-
-        $callback($bar);
-
-        $bar->finish();
     }
 }

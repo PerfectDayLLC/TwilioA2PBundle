@@ -11,6 +11,7 @@ use PerfectDayLlc\TwilioA2PBundle\Tests\Fake\Models\ClientRegistrationHistory as
 use PerfectDayLlc\TwilioA2PBundle\Tests\Fake\Models\Entity;
 use PerfectDayLlc\TwilioA2PBundle\Tests\Traits\InteractsWithTime;
 use PerfectDayLlc\TwilioA2PBundle\TwilioA2PBundleServiceProvider;
+use Twilio\Exceptions\ConfigurationException;
 
 class TestCase extends BaseTestCase
 {
@@ -31,7 +32,15 @@ class TestCase extends BaseTestCase
                 ->fresh();
     }
 
+    /**
+     * @throws ConfigurationException
+     */
     protected function createExpectedService(): RegisterService
+    {
+        return new RegisterService(...$this->setConfigForService());
+    }
+
+    protected function setConfigForService(): array
     {
         config([
             'services.twilio.sid' => $sid = 'twilio sid 123',
@@ -41,10 +50,6 @@ class TestCase extends BaseTestCase
             'twilioa2pbundle.entity_model' => Entity::class,
         ]);
 
-        return new RegisterService(
-            $sid,
-            $token,
-            $primaryCustomerSid
-        );
+        return [$sid, $token, $primaryCustomerSid];
     }
 }

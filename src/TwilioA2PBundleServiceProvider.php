@@ -3,6 +3,7 @@
 namespace PerfectDayLlc\TwilioA2PBundle;
 
 use Illuminate\Support\ServiceProvider;
+use PerfectDayLlc\TwilioA2PBundle\Console\CheckBrandStatus;
 use PerfectDayLlc\TwilioA2PBundle\Console\RegisterClients;
 use PerfectDayLlc\TwilioA2PBundle\Services\RegisterService;
 
@@ -33,6 +34,7 @@ class TwilioA2PBundleServiceProvider extends ServiceProvider
 
             $this->commands([
                 RegisterClients::class,
+                CheckBrandStatus::class,
             ]);
         }
     }

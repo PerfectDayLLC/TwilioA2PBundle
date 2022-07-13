@@ -15,6 +15,13 @@ use Symfony\Component\Console\Input\InputDefinition;
 
 class RegisterClientsTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->setConfigForService();
+    }
+
     protected function tearDown(): void
     {
         Entity::$customQuery = null;
