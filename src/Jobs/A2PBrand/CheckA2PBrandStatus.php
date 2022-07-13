@@ -25,6 +25,5 @@ class CheckA2PBrandStatus extends AbstractMainJob
 
     public function handle(): void
     {
-
     }
 }
