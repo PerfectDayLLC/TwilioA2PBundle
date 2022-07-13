@@ -1,6 +1,6 @@
 <?php
 
-namespace PerfectDayLlc\TwilioA2PBundle\Tests\Unit\Entity\EntityRegistrator;
+namespace PerfectDayLlc\TwilioA2PBundle\Tests\Unit\Domain\EntityRegistrator;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Log;

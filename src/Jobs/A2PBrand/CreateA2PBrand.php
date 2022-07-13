@@ -14,10 +14,8 @@ class CreateA2PBrand extends AbstractMainJob
 
     public ?string $a2PProfileBundleSid;
 
-    public function __construct(
-        RegisterService $registerService,
-        ClientData $client
-    ) {
+    public function __construct(RegisterService $registerService, ClientData $client)
+    {
         parent::__construct($registerService, $client);
 
         $this->a2PProfileBundleSid = ClientRegistrationHistory::getSidForAllowedStatuses(

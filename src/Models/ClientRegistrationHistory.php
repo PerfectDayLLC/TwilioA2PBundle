@@ -122,9 +122,9 @@ class ClientRegistrationHistory extends Model
         return $query->whereIn('status', empty($types) ? self::ALLOWED_STATUSES_TYPES : $types);
     }
 
-    private static function getHistory(string $requestType, $entityId): ?ClientRegistrationHistory
+    private static function getHistory(string $requestType, $entityId, array $types = []): ?ClientRegistrationHistory
     {
-        return static::allowedStatuses()
+        return static::allowedStatuses($types)
             ->whereRequestType($requestType)
             ->whereError(false)
             ->when($entityId, fn (Builder $query) => $query->where('entity_id', $entityId))
@@ -135,14 +135,24 @@ class ClientRegistrationHistory extends Model
     /**
      * @param  string|int|null  $entityId
      */
+    public static function getSid(string $requestType, $entityId, bool $isBundle, string $status): ?string
+    {
+        $history = self::getHistory($requestType, $entityId, [$status]);
+
+        return $history ? ($isBundle ? $history->bundle_sid : $history->object_sid) : null;
+    }
+
+    /**
+     * @param  string|int|null  $entityId
+     */
     public static function getSidForAllowedStatuses(
         string $requestType,
         $entityId = null,
         bool $isBundle = true
     ): ?string {
-        $self = self::getHistory($requestType, $entityId);
+        $history = self::getHistory($requestType, $entityId);
 
-        return $self ? ($isBundle ? $self->bundle_sid : $self->object_sid) : null;
+        return $history ? ($isBundle ? $history->bundle_sid : $history->object_sid) : null;
     }
 
     /**
@@ -150,8 +160,8 @@ class ClientRegistrationHistory extends Model
      */
     public static function getStatusForAllowedStatuses(string $requestType, $entityId = null): ?string
     {
-        $self = self::getHistory($requestType, $entityId);
+        $history = self::getHistory($requestType, $entityId);
 
-        return $self ? $self->status : null;
+        return $history ? $history->status : null;
     }
 }

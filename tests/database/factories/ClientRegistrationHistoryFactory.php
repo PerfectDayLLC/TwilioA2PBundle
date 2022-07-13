@@ -10,8 +10,8 @@ $factory->define(ClientRegistrationHistory::class, function (Faker $faker) {
     return [
         'entity_id' => factory(config('twilioa2pbundle.entity_model')),
         'request_type' => $faker->word(),
-        'bundle_sid' => $faker->regexify('BU[A-Z0-9]{16}'),
-        'object_sid' => $faker->regexify('BU[A-Z0-9]{16}'),
+        'bundle_sid' => $faker->regexify('BU[a-zA-Z0-9]{32}'),
+        'object_sid' => $faker->regexify('BU[a-zA-Z0-9]{32}'),
         'status' => $faker->randomElement(Status::getOngoingA2PStatuses()),
         'response' => [],
         'error' => false,

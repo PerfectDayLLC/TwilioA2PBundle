@@ -5,6 +5,7 @@ namespace PerfectDayLlc\TwilioA2PBundle\Domain;
 use Exception;
 use Illuminate\Support\Facades\Log;
 use PerfectDayLlc\TwilioA2PBundle\Contracts\ClientRegistrationHistory;
+use PerfectDayLlc\TwilioA2PBundle\Jobs\A2PBrand\CheckA2PBrandStatus;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\A2PBrand\CreateA2PBrand;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\A2PBrand\Starter\AssignCustomerProfileA2PTrustBundle;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\A2PBrand\Starter\CreateEmptyA2PStarterTrustBundle;
@@ -151,5 +152,7 @@ class EntityRegistrator
 
     public function checkBrandRegistrationStatus(ClientRegistrationHistory $entity): void
     {
+        dispatch(new CheckA2PBrandStatus($this->service, $entity->getClientData()))
+            ->onQueue(static::CREATE_A2P_BRAND_JOB_QUEUE);
     }
 }
