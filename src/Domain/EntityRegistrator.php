@@ -151,6 +151,5 @@ class EntityRegistrator
 
     public function checkBrandRegistrationStatus(ClientRegistrationHistory $entity): void
     {
-
     }
 }
