@@ -3,18 +3,18 @@
 namespace PerfectDayLlc\TwilioA2PBundle\Jobs\MessagingService;
 
 use PerfectDayLlc\TwilioA2PBundle\Entities\ClientData;
+use PerfectDayLlc\TwilioA2PBundle\Facades\Registrator as RegistratorFacade;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\AbstractMainJob;
 use PerfectDayLlc\TwilioA2PBundle\Models\ClientRegistrationHistory;
-use PerfectDayLlc\TwilioA2PBundle\Services\RegisterService;
 use Twilio\Exceptions\TwilioException;
 
 class AddPhoneNumberToMessagingService extends AbstractMainJob
 {
     private ?string $serviceInstanceSid;
 
-    public function __construct(RegisterService $registerService, ClientData $client)
+    public function __construct(ClientData $client)
     {
-        parent::__construct($registerService, $client);
+        parent::__construct($client);
 
         $this->serviceInstanceSid = ClientRegistrationHistory::getSidForAllowedStatuses(
             'createMessagingService',
@@ -32,6 +32,6 @@ class AddPhoneNumberToMessagingService extends AbstractMainJob
             return;
         }
 
-        $this->registerService->addPhoneNumberToMessagingService($this->client, $this->serviceInstanceSid);
+        RegistratorFacade::addPhoneNumberToMessagingService($this->client, $this->serviceInstanceSid);
     }
 }

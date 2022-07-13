@@ -22,7 +22,6 @@ use PerfectDayLlc\TwilioA2PBundle\Jobs\StarterCustomerProfile\CreateEndUserCusto
 use PerfectDayLlc\TwilioA2PBundle\Jobs\StarterCustomerProfile\EvaluateCustomerProfileBundle;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\StarterCustomerProfile\SubmitCustomerProfileBundle;
 use PerfectDayLlc\TwilioA2PBundle\Models\ClientRegistrationHistory as ClientRegistrationHistoryModel;
-use PerfectDayLlc\TwilioA2PBundle\Services\RegisterService;
 use Throwable;
 
 class EntityRegistrator
@@ -39,13 +38,6 @@ class EntityRegistrator
 
     public const LAST_REQUEST_TYPE = 'createA2PMessagingCampaignUseCase';
 
-    protected RegisterService $service;
-
-    public function __construct(RegisterService $service)
-    {
-        $this->service = $service;
-    }
-
     public function processEntity(ClientRegistrationHistory $entity): void
     {
         try {
@@ -58,72 +50,72 @@ class EntityRegistrator
 
             switch ($history->request_type ?? null) {
                 case null:
-                    dispatch(new CreateEmptyCustomerProfileStarterBundle($this->service, $client))
+                    dispatch(new CreateEmptyCustomerProfileStarterBundle($client))
                         ->onQueue(static::SUBMIT_CUSTOMER_PROFILE_BUNDLE_QUEUE);
 
                     return;
                 case 'createEmptyCustomerProfileStarterBundle':
-                    dispatch(new CreateEndUserCustomerProfileInfo($this->service, $client))
+                    dispatch(new CreateEndUserCustomerProfileInfo($client))
                         ->onQueue(static::SUBMIT_CUSTOMER_PROFILE_BUNDLE_QUEUE);
 
                     return;
                 case 'createEndUserCustomerProfileInfo':
-                    dispatch(new CreateCustomerProfileAddress($this->service, $client))
+                    dispatch(new CreateCustomerProfileAddress($client))
                         ->onQueue(static::SUBMIT_CUSTOMER_PROFILE_BUNDLE_QUEUE);
 
                     return;
                 case 'createCustomerProfileAddress':
-                    dispatch(new CreateCustomerSupportDocs($this->service, $client))
+                    dispatch(new CreateCustomerSupportDocs($client))
                         ->onQueue(static::SUBMIT_CUSTOMER_PROFILE_BUNDLE_QUEUE);
 
                     return;
                 case 'createCustomerSupportDocs':
-                    dispatch(new AttachObjectSidToCustomerProfile($this->service, $client))
+                    dispatch(new AttachObjectSidToCustomerProfile($client))
                         ->onQueue(static::SUBMIT_CUSTOMER_PROFILE_BUNDLE_QUEUE);
 
                     return;
                 case 'attachObjectSidToCustomerProfile':
-                    dispatch(new EvaluateCustomerProfileBundle($this->service, $client))
+                    dispatch(new EvaluateCustomerProfileBundle($client))
                         ->onQueue(static::SUBMIT_CUSTOMER_PROFILE_BUNDLE_QUEUE);
 
                     return;
                 case 'evaluateCustomerProfileBundle':
-                    dispatch(new SubmitCustomerProfileBundle($this->service, $client))
+                    dispatch(new SubmitCustomerProfileBundle($client))
                         ->onQueue(static::SUBMIT_CUSTOMER_PROFILE_BUNDLE_QUEUE);
 
                     return;
                 case 'submitCustomerProfileBundle':
-                    dispatch(new CreateEmptyA2PStarterTrustBundle($this->service, $client))
+                    dispatch(new CreateEmptyA2PStarterTrustBundle($client))
                         ->onQueue(static::SUBMIT_A2P_PROFILE_BUNDLE_QUEUE);
 
                     return;
                 case 'createEmptyA2PStarterTrustBundle':
-                    dispatch(new AssignCustomerProfileA2PTrustBundle($this->service, $client, $history->bundle_sid ?? null))
+                    dispatch(new AssignCustomerProfileA2PTrustBundle($client, $history->bundle_sid ?? null))
                         ->onQueue(static::SUBMIT_A2P_PROFILE_BUNDLE_QUEUE);
 
                     return;
                 case 'assignCustomerProfileA2PTrustBundle':
-                    dispatch(new EvaluateA2PStarterProfileBundle($this->service, $client))
+                    dispatch(new EvaluateA2PStarterProfileBundle($client))
                         ->onQueue(static::SUBMIT_A2P_PROFILE_BUNDLE_QUEUE);
 
                     return;
                 case 'evaluateA2PStarterProfileBundle':
-                    dispatch(new SubmitA2PProfileBundle($this->service, $client))
+                    dispatch(new SubmitA2PProfileBundle($client))
                         ->onQueue(static::SUBMIT_A2P_PROFILE_BUNDLE_QUEUE);
 
                     return;
                 case 'submitA2PProfileBundle':
-                    dispatch(new CreateA2PBrand($this->service, $client))
+                    dispatch(new CreateA2PBrand($client))
                         ->onQueue(static::CREATE_A2P_BRAND_JOB_QUEUE);
 
                     return;
                 case 'createA2PBrand':
-                    dispatch(new CreateMessagingService($this->service, $client))
+                    dispatch(new CreateMessagingService($client))
                         ->onQueue(static::CREATE_MESSAGING_SERVICE_QUEUE);
 
                     return;
                 case 'createMessagingService':
-                    dispatch(new AddPhoneNumberToMessagingService($this->service, $client))
+                    dispatch(new AddPhoneNumberToMessagingService($client))
                         ->onQueue(static::CREATE_MESSAGING_SERVICE_QUEUE);
 
                     return;
@@ -132,7 +124,7 @@ class EntityRegistrator
                         return;
                     }
 
-                    dispatch(new CreateA2PSmsCampaignUseCase($this->service, $client))
+                    dispatch(new CreateA2PSmsCampaignUseCase($client))
                         ->onQueue(static::CREATE_A2P_SMS_CAMPAIGN_USE_CASE_JOB_QUEUE);
 
                     return;
@@ -152,7 +144,7 @@ class EntityRegistrator
 
     public function checkBrandRegistrationStatus(ClientRegistrationHistory $entity): void
     {
-        dispatch(new CheckA2PBrandStatus($this->service, $entity->getClientData()))
+        dispatch(new CheckA2PBrandStatus($entity->getClientData()))
             ->onQueue(static::CREATE_A2P_BRAND_JOB_QUEUE);
     }
 }

@@ -3,18 +3,18 @@
 namespace PerfectDayLlc\TwilioA2PBundle\Jobs\A2PBrand\Starter;
 
 use PerfectDayLlc\TwilioA2PBundle\Entities\ClientData;
+use PerfectDayLlc\TwilioA2PBundle\Facades\Registrator as RegistratorFacade;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\AbstractMainJob;
 use PerfectDayLlc\TwilioA2PBundle\Models\ClientRegistrationHistory;
-use PerfectDayLlc\TwilioA2PBundle\Services\RegisterService;
 use Twilio\Exceptions\TwilioException;
 
 class EvaluateA2PStarterProfileBundle extends AbstractMainJob
 {
     public string $trustProductsInstanceSid;
 
-    public function __construct(RegisterService $registerService, ClientData $client)
+    public function __construct(ClientData $client)
     {
-        parent::__construct($registerService, $client);
+        parent::__construct($client);
 
         $this->trustProductsInstanceSid = ClientRegistrationHistory::getSidForAllowedStatuses(
             'createEmptyA2PStarterTrustBundle',
@@ -27,7 +27,7 @@ class EvaluateA2PStarterProfileBundle extends AbstractMainJob
      */
     public function handle(): void
     {
-        $this->registerService->evaluateA2PStarterProfileBundle(
+        RegistratorFacade::evaluateA2PStarterProfileBundle(
             $this->client,
             $this->trustProductsInstanceSid
         );

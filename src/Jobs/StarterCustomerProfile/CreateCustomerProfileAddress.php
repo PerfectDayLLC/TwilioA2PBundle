@@ -2,6 +2,7 @@
 
 namespace PerfectDayLlc\TwilioA2PBundle\Jobs\StarterCustomerProfile;
 
+use PerfectDayLlc\TwilioA2PBundle\Facades\Registrator as RegistratorFacade;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\AbstractMainJob;
 use Twilio\Exceptions\TwilioException;
 
@@ -12,6 +13,6 @@ class CreateCustomerProfileAddress extends AbstractMainJob
      */
     public function handle(): void
     {
-        $this->registerService->createCustomerProfileAddress($this->client);
+        RegistratorFacade::createCustomerProfileAddress($this->client);
     }
 }

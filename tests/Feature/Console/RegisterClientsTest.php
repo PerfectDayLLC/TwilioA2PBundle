@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Log;
 use Mockery;
 use PerfectDayLlc\TwilioA2PBundle\Console\RegisterClients;
-use PerfectDayLlc\TwilioA2PBundle\Facades\EntityRegistratorFacade;
+use PerfectDayLlc\TwilioA2PBundle\Facades\EntityRegistrator;
 use PerfectDayLlc\TwilioA2PBundle\Tests\Fake\Models\Entity;
 use PerfectDayLlc\TwilioA2PBundle\Tests\TestCase;
 use Symfony\Component\Console\Input\InputArgument;
@@ -57,7 +57,7 @@ class RegisterClientsTest extends TestCase
         /** @var Entity $expectedEntity2 */
         $expectedEntity2 = factory(Entity::class)->create();
 
-        $spy = EntityRegistratorFacade::spy();
+        $spy = EntityRegistrator::spy();
 
         $this->artisan(RegisterClients::class)
             ->assertExitCode(0);
@@ -105,7 +105,7 @@ class RegisterClientsTest extends TestCase
             'error' => $error,
         ]);
 
-        $spyRegistrator = EntityRegistratorFacade::spy();
+        $spyRegistrator = EntityRegistrator::spy();
         $spyLogger = Log::spy();
 
         $this->artisan(RegisterClients::class)
@@ -138,7 +138,7 @@ class RegisterClientsTest extends TestCase
 
         $this->createRealClientRegistrationHistoryModel(['entity_id' => $ignoredEntity, 'error' => true]);
 
-        $spyRegistrator = EntityRegistratorFacade::spy();
+        $spyRegistrator = EntityRegistrator::spy();
         $spyLogger = Log::spy();
 
         $this->artisan(RegisterClients::class)
@@ -193,7 +193,7 @@ class RegisterClientsTest extends TestCase
             'status' => $status,
         ]);
 
-        $spy = EntityRegistratorFacade::spy();
+        $spy = EntityRegistrator::spy();
 
         $this->artisan(RegisterClients::class)
             ->assertExitCode(0);
@@ -219,7 +219,7 @@ class RegisterClientsTest extends TestCase
 
         $expectedEntity::$customQuery = fn (Builder $query) => $query->where('company_name', $name);
 
-        $spy = EntityRegistratorFacade::spy();
+        $spy = EntityRegistrator::spy();
 
         $this->artisan(RegisterClients::class)
             ->assertExitCode(0);
@@ -241,7 +241,7 @@ class RegisterClientsTest extends TestCase
         /** @var Entity $expectedEntity */
         $expectedEntity = factory(Entity::class)->create();
 
-        $spy = EntityRegistratorFacade::spy();
+        $spy = EntityRegistrator::spy();
 
         $this->artisan(RegisterClients::class, ['entity' => $expectedEntity->getKey()])
             ->assertExitCode(0);
@@ -264,7 +264,7 @@ class RegisterClientsTest extends TestCase
         $expectedEntity = factory(Entity::class)->create();
         $this->createRealClientRegistrationHistoryModel(['entity_id' => $expectedEntity]);
 
-        $spy = EntityRegistratorFacade::spy();
+        $spy = EntityRegistrator::spy();
 
         $this->artisan(RegisterClients::class, ['entity' => $expectedEntity->getKey()])
             ->assertExitCode(0);
@@ -283,7 +283,7 @@ class RegisterClientsTest extends TestCase
     {
         factory(Entity::class, 2)->create();
 
-        EntityRegistratorFacade::shouldReceive('processEntity')
+        EntityRegistrator::shouldReceive('processEntity')
             ->andReturnUsing(
                 function () {
                     throw new Exception('Testing exception');

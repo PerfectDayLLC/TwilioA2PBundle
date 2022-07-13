@@ -3,9 +3,9 @@
 namespace PerfectDayLlc\TwilioA2PBundle\Jobs\A2PBrand;
 
 use PerfectDayLlc\TwilioA2PBundle\Entities\ClientData;
+use PerfectDayLlc\TwilioA2PBundle\Facades\Registrator as RegistratorFacade;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\AbstractMainJob;
 use PerfectDayLlc\TwilioA2PBundle\Models\ClientRegistrationHistory;
-use PerfectDayLlc\TwilioA2PBundle\Services\RegisterService;
 use Twilio\Exceptions\TwilioException;
 
 class CreateA2PBrand extends AbstractMainJob
@@ -14,9 +14,9 @@ class CreateA2PBrand extends AbstractMainJob
 
     public ?string $a2PProfileBundleSid;
 
-    public function __construct(RegisterService $registerService, ClientData $client)
+    public function __construct(ClientData $client)
     {
-        parent::__construct($registerService, $client);
+        parent::__construct($client);
 
         $this->a2PProfileBundleSid = ClientRegistrationHistory::getSidForAllowedStatuses(
             'submitA2PProfileBundle',
@@ -34,7 +34,7 @@ class CreateA2PBrand extends AbstractMainJob
      */
     public function handle(): void
     {
-        $this->registerService->createA2PBrand(
+        RegistratorFacade::createA2PBrand(
             $this->client,
             $this->a2PProfileBundleSid,
             $this->customerProfileBundleSid

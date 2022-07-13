@@ -5,7 +5,7 @@ namespace PerfectDayLlc\TwilioA2PBundle;
 use Illuminate\Support\ServiceProvider;
 use PerfectDayLlc\TwilioA2PBundle\Console\CheckBrandStatus;
 use PerfectDayLlc\TwilioA2PBundle\Console\RegisterClients;
-use PerfectDayLlc\TwilioA2PBundle\Services\RegisterService;
+use PerfectDayLlc\TwilioA2PBundle\Services\Registrator;
 
 class TwilioA2PBundleServiceProvider extends ServiceProvider
 {
@@ -14,8 +14,8 @@ class TwilioA2PBundleServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(__DIR__.'/../config/twilioa2pbundle.php', 'twilioa2pbundle');
 
         $this->app->bind(
-            RegisterService::class,
-            fn () => new RegisterService(
+            Registrator::class,
+            fn () => new Registrator(
                 config('services.twilio.sid'),
                 config('services.twilio.token'),
                 config('services.twilio.primary_customer_profile_sid')

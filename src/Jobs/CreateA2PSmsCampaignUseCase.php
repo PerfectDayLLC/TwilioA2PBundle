@@ -3,8 +3,8 @@
 namespace PerfectDayLlc\TwilioA2PBundle\Jobs;
 
 use PerfectDayLlc\TwilioA2PBundle\Entities\ClientData;
+use PerfectDayLlc\TwilioA2PBundle\Facades\Registrator as RegistratorFacade;
 use PerfectDayLlc\TwilioA2PBundle\Models\ClientRegistrationHistory;
-use PerfectDayLlc\TwilioA2PBundle\Services\RegisterService;
 use Twilio\Exceptions\TwilioException;
 
 class CreateA2PSmsCampaignUseCase extends AbstractMainJob
@@ -13,11 +13,9 @@ class CreateA2PSmsCampaignUseCase extends AbstractMainJob
 
     private string $a2PBrandSid;
 
-    public function __construct(
-        RegisterService $registerService,
-        ClientData $client
-    ) {
-        parent::__construct($registerService, $client);
+    public function __construct(ClientData $client)
+    {
+        parent::__construct($client);
 
         $this->a2PBrandSid = ClientRegistrationHistory::getSidForAllowedStatuses(
             'createA2PBrand',
@@ -42,7 +40,7 @@ class CreateA2PSmsCampaignUseCase extends AbstractMainJob
          *
          * @see https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api#51-create-an-a2p-messaging-campaign-use-case
          */
-        $this->registerService->createA2PMessagingCampaignUseCase(
+        RegistratorFacade::createA2PMessagingCampaignUseCase(
             $this->client,
             $this->a2PBrandSid,
             $this->messagingServiceSid

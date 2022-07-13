@@ -23,7 +23,7 @@ use PerfectDayLlc\TwilioA2PBundle\Jobs\StarterCustomerProfile\CreateEndUserCusto
 use PerfectDayLlc\TwilioA2PBundle\Jobs\StarterCustomerProfile\EvaluateCustomerProfileBundle;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\StarterCustomerProfile\SubmitCustomerProfileBundle;
 use PerfectDayLlc\TwilioA2PBundle\Models\ClientRegistrationHistory;
-use PerfectDayLlc\TwilioA2PBundle\Services\RegisterService;
+use PerfectDayLlc\TwilioA2PBundle\Services\Registrator;
 use PerfectDayLlc\TwilioA2PBundle\Tests\Fake\Models\Entity;
 use PerfectDayLlc\TwilioA2PBundle\Tests\TestCase;
 
@@ -47,13 +47,11 @@ class ProcessEntityTest extends TestCase
         'fallback_webhook_url' => 'https://fallbackwebhook.url/abc/123',
     ];
 
-    private RegisterService $registerService;
-
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->registerService = $this->createExpectedService();
+        $this->setConfigForService();
 
         Queue::fake();
     }
@@ -92,10 +90,7 @@ class ProcessEntityTest extends TestCase
         $this->assertOnlyPushedOn(
             'submit-customer-profile-bundle',
             CreateEmptyCustomerProfileStarterBundle::class,
-            function (CreateEmptyCustomerProfileStarterBundle $job) use ($entity) {
-                return $job->client == $entity->getClientData() &&
-                       $job->registerService == $this->registerService;
-            }
+            fn (CreateEmptyCustomerProfileStarterBundle $job) => $job->client == $entity->getClientData()
         );
     }
 
@@ -118,10 +113,7 @@ class ProcessEntityTest extends TestCase
         $this->assertOnlyPushedOn(
             'submit-customer-profile-bundle',
             CreateEndUserCustomerProfileInfo::class,
-            function (CreateEndUserCustomerProfileInfo $job) use ($entity) {
-                return $job->client == $entity->getClientData() &&
-                       $job->registerService == $this->registerService;
-            }
+            fn (CreateEndUserCustomerProfileInfo $job) => $job->client == $entity->getClientData()
         );
     }
 
@@ -144,10 +136,7 @@ class ProcessEntityTest extends TestCase
         $this->assertOnlyPushedOn(
             'submit-customer-profile-bundle',
             CreateCustomerProfileAddress::class,
-            function (CreateCustomerProfileAddress $job) use ($entity) {
-                return $job->client == $entity->getClientData() &&
-                       $job->registerService == $this->registerService;
-            }
+            fn (CreateCustomerProfileAddress $job) => $job->client == $entity->getClientData()
         );
     }
 
@@ -170,10 +159,7 @@ class ProcessEntityTest extends TestCase
         $this->assertOnlyPushedOn(
             'submit-customer-profile-bundle',
             CreateCustomerSupportDocs::class,
-            function (CreateCustomerSupportDocs $job) use ($entity) {
-                return $job->client == $entity->getClientData() &&
-                       $job->registerService == $this->registerService;
-            }
+            fn (CreateCustomerSupportDocs $job) => $job->client == $entity->getClientData()
         );
     }
 
@@ -212,7 +198,6 @@ class ProcessEntityTest extends TestCase
             AttachObjectSidToCustomerProfile::class,
             function (AttachObjectSidToCustomerProfile $job) use ($entity, $requiredHistoryRequestTypes) {
                 return $job->client == $entity->getClientData() &&
-                       $job->registerService == $this->registerService &&
                        $job->customerProfilesInstanceSid === $requiredHistoryRequestTypes['createEmptyCustomerProfileStarterBundle'] &&
                        $job->endUserInstanceSid === $requiredHistoryRequestTypes['createEndUserCustomerProfileInfo'] &&
                        $job->supportingDocumentInstanceSid === $requiredHistoryRequestTypes['createCustomerSupportDocs'];
@@ -252,7 +237,6 @@ class ProcessEntityTest extends TestCase
             EvaluateCustomerProfileBundle::class,
             function (EvaluateCustomerProfileBundle $job) use ($entity, $requiredHistoryRequestType) {
                 return $job->client == $entity->getClientData() &&
-                       $job->registerService == $this->registerService &&
                        $job->customerProfileBundleSid === $requiredHistoryRequestType;
             }
         );
@@ -292,7 +276,6 @@ class ProcessEntityTest extends TestCase
             SubmitCustomerProfileBundle::class,
             function (SubmitCustomerProfileBundle $job) use ($entity, $requiredHistoryRequestTypes) {
                 return $job->client == $entity->getClientData() &&
-                       $job->registerService == $this->registerService &&
                        $job->customerProfilesInstanceSid === $requiredHistoryRequestTypes['createEmptyCustomerProfileStarterBundle'] &&
                        $job->customerProfilesEvaluationsInstanceStatus === $requiredHistoryRequestTypes['evaluateCustomerProfileBundle'];
             }
@@ -318,10 +301,7 @@ class ProcessEntityTest extends TestCase
         $this->assertOnlyPushedOn(
             'submit-a2p-profile-bundle',
             CreateEmptyA2PStarterTrustBundle::class,
-            function (CreateEmptyA2PStarterTrustBundle $job) use ($entity) {
-                return $job->client == $entity->getClientData() &&
-                       $job->registerService == $this->registerService;
-            }
+            fn (CreateEmptyA2PStarterTrustBundle $job) => $job->client == $entity->getClientData()
         );
     }
 
@@ -347,7 +327,6 @@ class ProcessEntityTest extends TestCase
             AssignCustomerProfileA2PTrustBundle::class,
             function (AssignCustomerProfileA2PTrustBundle $job) use ($entity, $history) {
                 return $job->client == $entity->getClientData() &&
-                       $job->registerService == $this->registerService &&
                        $job->customerProfileBundleSid === $history->bundle_sid;
             }
         );
@@ -385,7 +364,6 @@ class ProcessEntityTest extends TestCase
             EvaluateA2PStarterProfileBundle::class,
             function (EvaluateA2PStarterProfileBundle $job) use ($entity, $requiredHistoryRequestType) {
                 return $job->client == $entity->getClientData() &&
-                       $job->registerService == $this->registerService &&
                        $job->trustProductsInstanceSid === $requiredHistoryRequestType;
             }
         );
@@ -426,7 +404,6 @@ class ProcessEntityTest extends TestCase
             SubmitA2PProfileBundle::class,
             function (SubmitA2PProfileBundle $job) use ($entity, $requiredHistoryRequestTypes) {
                 return $job->client == $entity->getClientData() &&
-                       $job->registerService == $this->registerService &&
                        $job->trustProductsInstanceSid === $requiredHistoryRequestTypes['createEmptyA2PStarterTrustBundle'] &&
                        $job->trustProductsInstanceStatus === $requiredHistoryRequestTypes['evaluateA2PStarterProfileBundle'];
             }
@@ -452,10 +429,7 @@ class ProcessEntityTest extends TestCase
         $this->assertOnlyPushedOn(
             'create-a2p-brand-job',
             CreateA2PBrand::class,
-            function (CreateA2pBrand $job) use ($entity) {
-                return $job->client == $entity->getClientData() &&
-                       $job->registerService == $this->registerService;
-            }
+            fn (CreateA2pBrand $job) => $job->client == $entity->getClientData()
         );
     }
 
@@ -478,10 +452,7 @@ class ProcessEntityTest extends TestCase
         $this->assertOnlyPushedOn(
             'create-messaging-service',
             CreateMessagingService::class,
-            function (CreateMessagingService $job) use ($entity) {
-                return $job->client == $entity->getClientData() &&
-                       $job->registerService == $this->registerService;
-            }
+            fn (CreateMessagingService $job) => $job->client == $entity->getClientData()
         );
     }
 
@@ -504,10 +475,7 @@ class ProcessEntityTest extends TestCase
         $this->assertOnlyPushedOn(
             'create-messaging-service',
             AddPhoneNumberToMessagingService::class,
-            function (AddPhoneNumberToMessagingService $job) use ($entity) {
-                return $job->client == $entity->getClientData() &&
-                       $job->registerService == $this->registerService;
-            }
+            fn (AddPhoneNumberToMessagingService $job) => $job->client == $entity->getClientData()
         );
     }
 
@@ -546,10 +514,7 @@ class ProcessEntityTest extends TestCase
         $this->assertOnlyPushedOn(
             'create-a2p-sms-campaign-use-case-job',
             CreateA2PSmsCampaignUseCase::class,
-            function (CreateA2PSmsCampaignUseCase $job) use ($entity) {
-                return $job->client == $entity->getClientData() &&
-                       $job->registerService == $this->registerService;
-            }
+            fn (CreateA2PSmsCampaignUseCase $job) => $job->client == $entity->getClientData()
         );
     }
 
@@ -596,10 +561,7 @@ class ProcessEntityTest extends TestCase
         $this->assertOnlyPushedOn(
             'submit-customer-profile-bundle',
             CreateEmptyCustomerProfileStarterBundle::class,
-            function (CreateEmptyCustomerProfileStarterBundle $job) use ($entity) {
-                return $job->client == $entity->getClientData() &&
-                       $job->registerService == $this->registerService;
-            }
+            fn (CreateEmptyCustomerProfileStarterBundle $job) => $job->client == $entity->getClientData()
         );
     }
 
@@ -649,10 +611,7 @@ class ProcessEntityTest extends TestCase
         $this->assertOnlyPushedOn(
             'submit-customer-profile-bundle',
             CreateEmptyCustomerProfileStarterBundle::class,
-            function (CreateEmptyCustomerProfileStarterBundle $job) use ($entity) {
-                return $job->client == $entity->getClientData() &&
-                       $job->registerService == $this->registerService;
-            }
+            fn (CreateEmptyCustomerProfileStarterBundle $job) => $job->client == $entity->getClientData()
         );
     }
 

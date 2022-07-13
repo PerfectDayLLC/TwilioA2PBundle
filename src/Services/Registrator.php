@@ -21,7 +21,7 @@ use Twilio\Rest\Trusthub\V1\SupportingDocumentInstance;
 use Twilio\Rest\Trusthub\V1\TrustProducts\TrustProductsEvaluationsInstance;
 use Twilio\Rest\Trusthub\V1\TrustProductsInstance;
 
-class RegisterService
+class Registrator
 {
     private const STARTER_CUSTOMER_PROFILE_BUNDLE_POLICY_SID = 'RN806dd6cd175f314e1f96a9727ee271f4';
 
@@ -683,6 +683,45 @@ class RegisterService
                     'request_type' => __FUNCTION__,
                     'bundle_sid' => $a2PProfileBundleSid,
                     'object_sid' => $customerProfileBundleSid,
+                    'status' => Status::EXCEPTION_ERROR,
+                    'response' => $this->exceptionToArray($exception),
+                    'error' => true,
+                ])
+            );
+
+            throw $exception;
+        }
+    }
+
+    /**
+     * Check an A2P Brand status.
+     *
+     * @throws TwilioException
+     *
+     * @see https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api#31-get-the-brand-registration-status
+     */
+    public function checkA2PBrandStatus(
+        ClientData $client,
+        string $brandObjectSid,
+        string $a2PProfileBundleSid
+    ): BrandRegistrationInstance {
+        /**
+         * Rate-limiting request.
+         *
+         * @see https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api
+         */
+        sleep($this->requestDelay);
+
+        try {
+            return $this->client->messaging->v1
+                ->brandRegistrations($brandObjectSid)
+                ->fetch();
+        } catch (TwilioException $exception) {
+            $this->saveNewClientRegistrationHistory(
+                ClientRegistrationHistoryResponseData::createFromArray([
+                    'entity_id' => $client->getId(),
+                    'request_type' => __FUNCTION__,
+                    'bundle_sid' => $a2PProfileBundleSid,
                     'status' => Status::EXCEPTION_ERROR,
                     'response' => $this->exceptionToArray($exception),
                     'error' => true,

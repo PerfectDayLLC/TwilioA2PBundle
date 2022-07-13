@@ -2,6 +2,7 @@
 
 namespace PerfectDayLlc\TwilioA2PBundle\Jobs\MessagingService;
 
+use PerfectDayLlc\TwilioA2PBundle\Facades\Registrator as RegistratorFacade;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\AbstractMainJob;
 use Twilio\Exceptions\TwilioException;
 
@@ -12,6 +13,6 @@ class CreateMessagingService extends AbstractMainJob
      */
     public function handle(): void
     {
-        $this->registerService->createMessagingService($this->client);
+        RegistratorFacade::createMessagingService($this->client);
     }
 }
