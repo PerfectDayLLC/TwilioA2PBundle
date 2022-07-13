@@ -4,7 +4,7 @@ namespace PerfectDayLlc\TwilioA2PBundle\Tests\Feature\Console;
 
 use Mockery;
 use PerfectDayLlc\TwilioA2PBundle\Console\CheckBrandStatus;
-use PerfectDayLlc\TwilioA2PBundle\Facades\EntityRegistrator;
+use PerfectDayLlc\TwilioA2PBundle\Facades\EntityRegistratorFacade;
 use PerfectDayLlc\TwilioA2PBundle\Tests\Fake\Models\Entity;
 use PerfectDayLlc\TwilioA2PBundle\Tests\TestCase;
 use Symfony\Component\Console\Input\InputArgument;
@@ -51,7 +51,7 @@ class CheckBrandStatusTest extends TestCase
             'status' => 'pending',
         ]);
 
-        $spy = EntityRegistrator::spy();
+        $spy = EntityRegistratorFacade::spy();
 
         $this->artisan(CheckBrandStatus::class)
             ->assertExitCode(0);
@@ -73,7 +73,7 @@ class CheckBrandStatusTest extends TestCase
             $this->createRealClientRegistrationHistoryModel(['request_type' => $requestType]);
         }
 
-        $spy = EntityRegistrator::spy();
+        $spy = EntityRegistratorFacade::spy();
 
         $this->artisan(CheckBrandStatus::class)
             ->assertExitCode(0);

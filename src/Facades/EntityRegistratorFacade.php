@@ -8,7 +8,7 @@ use PerfectDayLlc\TwilioA2PBundle\Domain\EntityRegistrator as EntityRegistratorD
 /**
  * @mixin EntityRegistratorDomain
  */
-class EntityRegistrator extends Facade
+class EntityRegistratorFacade extends Facade
 {
     /**
      * @return class-string

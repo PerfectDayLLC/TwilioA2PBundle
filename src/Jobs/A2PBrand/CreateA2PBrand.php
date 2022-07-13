@@ -1,8 +1,9 @@
 <?php
 
-namespace PerfectDayLlc\TwilioA2PBundle\Jobs;
+namespace PerfectDayLlc\TwilioA2PBundle\Jobs\A2PBrand;
 
 use PerfectDayLlc\TwilioA2PBundle\Entities\ClientData;
+use PerfectDayLlc\TwilioA2PBundle\Jobs\AbstractMainJob;
 use PerfectDayLlc\TwilioA2PBundle\Models\ClientRegistrationHistory;
 use PerfectDayLlc\TwilioA2PBundle\Services\RegisterService;
 use Twilio\Exceptions\TwilioException;

@@ -1,6 +1,6 @@
 <?php
 
-namespace PerfectDayLlc\TwilioA2PBundle\Jobs\A2PBrandStarter;
+namespace PerfectDayLlc\TwilioA2PBundle\Jobs\A2PBrand\Starter;
 
 use PerfectDayLlc\TwilioA2PBundle\Entities\ClientData;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\AbstractMainJob;
