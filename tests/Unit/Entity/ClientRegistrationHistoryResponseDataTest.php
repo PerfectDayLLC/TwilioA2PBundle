@@ -1,6 +1,6 @@
 <?php
 
-namespace PerfectDayLlc\TwilioA2PBundle\Tests\Unit;
+namespace PerfectDayLlc\TwilioA2PBundle\Tests\Unit\Entity;
 
 use Illuminate\Support\Str;
 use PerfectDayLlc\TwilioA2PBundle\Entities\ClientRegistrationHistoryResponseData;
