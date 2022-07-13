@@ -48,6 +48,7 @@ class CheckBrandRegistrationStatusTest extends TestCase
 
         Queue::assertPushedOn(
             'create-a2p-brand-job',
+            CheckA2PBrandStatus::class,
             function (CheckA2PBrandStatus $job) use ($entity, $objectSid) {
                 return $job->client == $entity->getClientData() &&
                        $job->registerService == $this->registerService &&
