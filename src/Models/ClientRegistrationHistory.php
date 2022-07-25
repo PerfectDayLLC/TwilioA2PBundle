@@ -108,7 +108,7 @@ class ClientRegistrationHistory extends Model
 
     public function entity(): BelongsTo
     {
-        /** @var string $entityModelString */
+        /** @var class-string<Model> $entityModelString */
         $entityModelString = config('twilioa2pbundle.entity_model');
 
         /** @var Model $entityModel */

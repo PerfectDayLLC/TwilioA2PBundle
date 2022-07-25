@@ -25,6 +25,7 @@ class CreateFakeEntityTable extends Migration
             $table->string('contact_phone');
             $table->string('webhook_url');
             $table->string('fallback_webhook_url');
+            $table->boolean('active');
             $table->timestamps();
         });
     }

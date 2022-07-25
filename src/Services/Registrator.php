@@ -2,6 +2,7 @@
 
 namespace PerfectDayLlc\TwilioA2PBundle\Services;
 
+use Illuminate\Support\Str;
 use PerfectDayLlc\TwilioA2PBundle\Entities\ClientData;
 use PerfectDayLlc\TwilioA2PBundle\Entities\ClientRegistrationHistoryResponseData;
 use PerfectDayLlc\TwilioA2PBundle\Entities\Status;
@@ -351,7 +352,7 @@ class Registrator
                     'object_sid' => $customerProfilesEvaluationsInstance->sid,
                     'status' => $customerProfilesEvaluationsInstance->status,
                     'response' => $customerProfilesEvaluationsInstance->toArray(),
-                    'error' => $customerProfilesEvaluationsInstance->status === Status::BUNDLES_NONCOMPLIANT,
+                    'error' => Str::lower($customerProfilesEvaluationsInstance->status) !== Str::lower(Status::BUNDLES_COMPLIANT),
                 ])
             );
 
