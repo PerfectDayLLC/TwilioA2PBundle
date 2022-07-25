@@ -6,6 +6,7 @@ use Mockery;
 use PerfectDayLlc\TwilioA2PBundle\Console\CheckBrandStatus;
 use PerfectDayLlc\TwilioA2PBundle\Console\FixCustomerProfileEvaluationProcess;
 use PerfectDayLlc\TwilioA2PBundle\Facades\EntityRegistrator as EntityRegistratorFacade;
+use PerfectDayLlc\TwilioA2PBundle\Models\ClientRegistrationHistory;
 use PerfectDayLlc\TwilioA2PBundle\Tests\Fake\Models\Entity;
 use PerfectDayLlc\TwilioA2PBundle\Tests\TestCase;
 use Symfony\Component\Console\Input\InputArgument;
@@ -49,16 +50,15 @@ class FixCustomerProfileEvaluationProcessTest extends TestCase
         $this->createRealClientRegistrationHistoryModel([
             'entity_id' => $expectedEntity,
             'request_type' => 'createEndUserCustomerProfileInfo',
-            'status' => 'executed',
         ]);
 
         $this->travel(1)->second();
 
-        $this->createRealClientRegistrationHistoryModel([
+        $expectedHistory = $this->createRealClientRegistrationHistoryModel([
             'entity_id' => $expectedEntity,
             'request_type' => 'evaluateCustomerProfileBundle',
             'status' => 'noncompliant',
-            'error' => true,
+            'error' => 1,
         ]);
 
         $spy = EntityRegistratorFacade::spy();
@@ -66,12 +66,14 @@ class FixCustomerProfileEvaluationProcessTest extends TestCase
         $this->artisan(FixCustomerProfileEvaluationProcess::class)
             ->assertExitCode(0);
 
-        $spy->shouldHaveReceived('processEntity')
+        $spy->shouldHaveReceived('fixCustomerProfileForEvaluation')
             ->once()
             ->with(
-                Mockery::on(fn (Entity $actualEntity) => $actualEntity->is($expectedEntity))
+                Mockery::on(fn (ClientRegistrationHistory $actualHistory) => $actualHistory->is($expectedHistory))
             );
     }
+
+    // TODO: check if I can reuse the next test, add test when we pass an entity id and add test we don't fail when error happens
 
     /**
      * @depends test_should_process_history_request_type_create_a2p_brand_with_pending_status

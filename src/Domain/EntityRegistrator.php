@@ -4,7 +4,7 @@ namespace PerfectDayLlc\TwilioA2PBundle\Domain;
 
 use Exception;
 use Illuminate\Support\Facades\Log;
-use PerfectDayLlc\TwilioA2PBundle\Contracts\ClientRegistrationHistory;
+use PerfectDayLlc\TwilioA2PBundle\Contracts\ClientRegistrationHistory as ClientRegistrationHistoryContract;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\A2PBrand\CheckA2PBrandStatus;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\A2PBrand\CreateA2PBrand;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\A2PBrand\Starter\AssignCustomerProfileA2PTrustBundle;
@@ -20,7 +20,9 @@ use PerfectDayLlc\TwilioA2PBundle\Jobs\StarterCustomerProfile\CreateCustomerSupp
 use PerfectDayLlc\TwilioA2PBundle\Jobs\StarterCustomerProfile\CreateEmptyCustomerProfileStarterBundle;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\StarterCustomerProfile\CreateEndUserCustomerProfileInfo;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\StarterCustomerProfile\EvaluateCustomerProfileBundle;
+use PerfectDayLlc\TwilioA2PBundle\Jobs\StarterCustomerProfile\FixCustomerProfileEvaluationProcess;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\StarterCustomerProfile\SubmitCustomerProfileBundle;
+use PerfectDayLlc\TwilioA2PBundle\Models\ClientRegistrationHistory;
 use PerfectDayLlc\TwilioA2PBundle\Models\ClientRegistrationHistory as ClientRegistrationHistoryModel;
 use Throwable;
 
@@ -38,7 +40,7 @@ class EntityRegistrator
 
     public const LAST_REQUEST_TYPE = 'createA2PMessagingCampaignUseCase';
 
-    public function processEntity(ClientRegistrationHistory $entity): void
+    public function processEntity(ClientRegistrationHistoryContract $entity): void
     {
         try {
             /**
@@ -142,9 +144,15 @@ class EntityRegistrator
         }
     }
 
-    public function checkBrandRegistrationStatus(ClientRegistrationHistory $entity): void
+    public function checkBrandRegistrationStatus(ClientRegistrationHistoryContract $entity): void
     {
         dispatch(new CheckA2PBrandStatus($entity->getClientData()))
             ->onQueue(static::CREATE_A2P_BRAND_JOB_QUEUE);
+    }
+
+    public function fixCustomerProfileForEvaluation(ClientRegistrationHistory $history): void
+    {
+        dispatch(new FixCustomerProfileEvaluationProcess($history->entity->getClientData()))
+            ->onQueue(static::SUBMIT_CUSTOMER_PROFILE_BUNDLE_QUEUE);
     }
 }

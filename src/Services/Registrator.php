@@ -159,6 +159,41 @@ class Registrator
         }
     }
 
+    public function updateEndUserCustomerProfileInfo(
+        ClientData $client,
+        ClientRegistrationHistory $customerProfileBundle
+    ): EndUserInstance {
+        /**
+         * Rate-limiting request.
+         *
+         * @see https://www.twilio.com/docs/sms/a2p-10dlc/isv-starter-api
+         */
+        sleep($this->requestDelay);
+
+        try {
+            $endUserInstance = $this->client->trusthub->v1
+                ->endUsers($customerProfileBundle->object_sid)
+                ->update(
+                    [
+                        'attributes' => [
+                            'first_name' => $client->getContactFirstname(),
+                            'last_name' => $client->getContactLastname(),
+                            'email' => $client->getContactEmail(),
+                            'phone_number' => $client->getContactPhone(),
+                        ],
+                    ]
+                );
+
+            $customerProfileBundle->update(['response' => $endUserInstance->toArray()]);
+
+            return $endUserInstance;
+        } catch (TwilioException $exception) {
+            $customerProfileBundle->update(['response' => $this->exceptionToArray($exception)]);
+
+            throw $exception;
+        }
+    }
+
     /**
      * Create supporting document: customer_profile_address.
      *

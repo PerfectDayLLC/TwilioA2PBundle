@@ -55,7 +55,9 @@ class CheckBrandStatusTest extends TestCase
 
         $this->artisan(CheckBrandStatus::class)->assertExitCode(0);
 
-        $spy->shouldHaveReceived('checkBrandRegistrationStatus')->once()->with(
+        $spy->shouldHaveReceived('checkBrandRegistrationStatus')
+            ->once()
+            ->with(
                 Mockery::on(fn (Entity $actualEntity) => $actualEntity->is($expectedEntity))
             );
     }

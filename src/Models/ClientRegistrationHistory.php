@@ -39,6 +39,7 @@ use PerfectDayLlc\TwilioA2PBundle\Entities\Status;
  * @method static \Illuminate\Database\Eloquent\Builder|static whereUpdatedAt($value)
  * @method static \Illuminate\Database\Query\Builder|static withTrashed()
  * @method static \Illuminate\Database\Query\Builder|static withoutTrashed()
+ * @mixin \Eloquent
  */
 class ClientRegistrationHistory extends Model
 {
@@ -122,7 +123,7 @@ class ClientRegistrationHistory extends Model
         return $query->whereIn('status', empty($types) ? self::ALLOWED_STATUSES_TYPES : $types);
     }
 
-    private static function getHistory(string $requestType, $entityId, array $types = []): ?ClientRegistrationHistory
+    public static function getHistory(string $requestType, $entityId, array $types = []): ?ClientRegistrationHistory
     {
         return static::allowedStatuses($types)
             ->whereRequestType($requestType)
