@@ -39,17 +39,19 @@ class FixCustomerProfileEvaluationProcess extends AbstractCommand
                     ->fromRaw((new ClientRegistrationHistory)->getTable().', (SELECT @row_number:=0) AS t')
                     ->having('num', 1)
                     ->orderByRaw('?, ? DESC', ['entity_id', ClientRegistrationHistory::CREATED_AT]),
-                $relativeTable = 'latest_type'
+                $relativeTableAlias = 'latest_type'
             )
-            ->whereExists(function (DatabaseBuilder $query) use ($relativeTable) {
+            ->whereExists(function (DatabaseBuilder $query) use ($relativeTableAlias) {
                 /** @var class-string<Model&ClientRegistrationHistoryContract> $entityModelString */
                 $entityModelString = config('twilioa2pbundle.entity_model');
 
-                return $query->from((new $entityModelString)->getTable(), 'entity_table')
-                    ->where("$relativeTable.entity_id", DB::raw('`entity_table`.`id`'));
+                $entityInstance = new $entityModelString;
+
+                return $query->from($entityInstance->getTable(), $tableAlias = 'entity_table')
+                    ->where("$relativeTableAlias.entity_id", DB::raw($tableAlias.'.'.$entityInstance->getKeyName()));
             })
-            ->where("$relativeTable.error", 1)
-            ->orderByDesc("$relativeTable.id")
+            ->where("$relativeTableAlias.error", true)
+            ->orderByDesc("$relativeTableAlias.id")
             ->when(
                 $this->argument('entity'),
                 fn (EloquentBuilder $query, $entityId) => $query->whereKey($entityId)
