@@ -76,7 +76,7 @@ class FixCustomerProfileEvaluationProcessTest extends TestCase
     // TODO: check if I can reuse the next test, add test when we pass an entity id and add test we don't fail when error happens
 
     /**
-     * @depends test_should_process_history_request_type_create_a2p_brand_with_pending_status
+     * @depends test_should_process_history_request_type_evaluate_customer_profile_bundle_with_pending_status
      * @dataProvider allHistoryRequestTypesExceptCreateBrandProvider
      */
     public function test_should_not_process_any_entity_whose_history_request_type_is_create_a2p_brand_and_status_pending(
