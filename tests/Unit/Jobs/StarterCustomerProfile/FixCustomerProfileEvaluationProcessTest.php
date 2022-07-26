@@ -2,9 +2,7 @@
 
 namespace PerfectDayLlc\TwilioA2PBundle\Tests\Unit\Jobs\StarterCustomerProfile;
 
-use Illuminate\Support\Facades\Queue;
 use PerfectDayLlc\TwilioA2PBundle\Facades\Registrator as RegistratorFacade;
-use PerfectDayLlc\TwilioA2PBundle\Jobs\StarterCustomerProfile\EvaluateCustomerProfileBundle;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\StarterCustomerProfile\FixCustomerProfileEvaluationProcess;
 use PerfectDayLlc\TwilioA2PBundle\Tests\Fake\Models\Entity;
 use PerfectDayLlc\TwilioA2PBundle\Tests\TestCase;
