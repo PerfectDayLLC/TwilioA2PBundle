@@ -2,7 +2,9 @@
 
 namespace PerfectDayLlc\TwilioA2PBundle\Tests\Unit\Jobs\StarterCustomerProfile;
 
+use Illuminate\Support\Facades\Queue;
 use PerfectDayLlc\TwilioA2PBundle\Facades\Registrator as RegistratorFacade;
+use PerfectDayLlc\TwilioA2PBundle\Jobs\StarterCustomerProfile\EvaluateCustomerProfileBundle;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\StarterCustomerProfile\FixCustomerProfileEvaluationProcess;
 use PerfectDayLlc\TwilioA2PBundle\Tests\Fake\Models\Entity;
 use PerfectDayLlc\TwilioA2PBundle\Tests\TestCase;
@@ -39,10 +41,20 @@ class FixCustomerProfileEvaluationProcessTest extends TestCase
 
         $spy = RegistratorFacade::spy();
 
+        Queue::fake();
+
         (new FixCustomerProfileEvaluationProcess($expectedEntity->getClientData()))
             ->handle();
 
         $spy->shouldHaveReceived('updateEndUserCustomerProfileInfo')
             ->once();
+
+        Queue::assertPushed(EvaluateCustomerProfileBundle::class, 1);
+
+        Queue::assertPushedOn(
+            'submit-customer-profile-bundle',
+            EvaluateCustomerProfileBundle::class,
+            fn (EvaluateCustomerProfileBundle $job) => $job->client == $expectedEntity->getClientData()
+        );
     }
 }

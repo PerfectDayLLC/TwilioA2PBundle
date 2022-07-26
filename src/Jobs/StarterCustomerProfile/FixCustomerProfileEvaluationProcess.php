@@ -2,6 +2,7 @@
 
 namespace PerfectDayLlc\TwilioA2PBundle\Jobs\StarterCustomerProfile;
 
+use PerfectDayLlc\TwilioA2PBundle\Domain\EntityRegistrator;
 use PerfectDayLlc\TwilioA2PBundle\Entities\ClientData;
 use PerfectDayLlc\TwilioA2PBundle\Facades\Registrator as RegistratorFacade;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\AbstractMainJob;
@@ -28,5 +29,8 @@ class FixCustomerProfileEvaluationProcess extends AbstractMainJob
     public function handle(): void
     {
         RegistratorFacade::updateEndUserCustomerProfileInfo($this->client, $this->endUserCustomerProfileInfo);
+
+        dispatch(new EvaluateCustomerProfileBundle($this->client))
+            ->onQueue(EntityRegistrator::SUBMIT_CUSTOMER_PROFILE_BUNDLE_QUEUE);
     }
 }
