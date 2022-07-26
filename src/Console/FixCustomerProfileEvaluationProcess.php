@@ -23,24 +23,29 @@ class FixCustomerProfileEvaluationProcess extends AbstractCommand
 
     public function handle(): int
     {
-        $historiesWithErrors = DB::table(
-            // This next custom query return the latest history, this is the only way on MySQL <= 5.7 to achieve it
-            ClientRegistrationHistory::query()
-                ->select([
-                    'id',
-                    'request_type',
-                    'error',
-                    'response',
-                    'status',
-                    ClientRegistrationHistory::CREATED_AT,
-                    DB::raw('@row_number:=CASE WHEN @entity = `entity_id` THEN @row_number + 1 ELSE 1 END AS `num`'),
-                    DB::raw('@entity:=entity_id entity_id'),
-                ])
-                ->fromRaw((new ClientRegistrationHistory)->getTable().', (SELECT @row_number:=0) AS t')
-                ->having('num', 1)
-                ->orderByRaw('entity_id, created_at DESC'),
-            $relativeTableAlias = 'latest_type'
-        )
+        /** @var class-string<Model&ClientRegistrationHistoryContract> $entityNamespaceModel */
+        $entityNamespaceModel = config('twilioa2pbundle.entity_model');
+
+        // Can't use DB::table(query) because Laravel 5.8 only accepts a string, later versions accepts a query...
+        $historiesWithErrors = $entityNamespaceModel::query()
+            ->fromSub(
+                // This next custom query return the latest history, this is the only way on MySQL <= 5.7 to achieve it
+                ClientRegistrationHistory::query()
+                    ->select([
+                        'id',
+                        'request_type',
+                        'error',
+                        'response',
+                        'status',
+                        ClientRegistrationHistory::CREATED_AT,
+                        DB::raw('@row_number:=CASE WHEN @entity = `entity_id` THEN @row_number + 1 ELSE 1 END AS `num`'),
+                        DB::raw('@entity:=entity_id entity_id'),
+                    ])
+                    ->fromRaw((new ClientRegistrationHistory)->getTable().', (SELECT @row_number:=0) AS t')
+                    ->having('num', 1)
+                    ->orderByRaw('entity_id, created_at DESC'),
+                $relativeTableAlias = 'latest_type'
+            )
             ->select('id')
             ->whereExists(function (DatabaseBuilder $query) use ($relativeTableAlias) {
                 /** @var class-string<Model&ClientRegistrationHistoryContract> $entityModelString */
@@ -48,7 +53,10 @@ class FixCustomerProfileEvaluationProcess extends AbstractCommand
 
                 $entityInstance = new $entityModelString;
 
-                return $query->from($entityInstance->getTable(), $tableAlias = 'entity_table')
+                $tableAlias = 'entity_table';
+
+                // Had to use `fromRaw` because Laravel 5.8 does not have the same signing for `from` as later versions
+                return $query->fromRaw("`{$entityInstance->getTable()}` AS `$tableAlias`")
                     ->where("$relativeTableAlias.entity_id", DB::raw($tableAlias.'.'.$entityInstance->getKeyName()))
                     ->when(
                         $this->argument('entity'),

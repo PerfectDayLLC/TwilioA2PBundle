@@ -18,7 +18,7 @@ class CheckBrandStatus extends AbstractCommand
 
     public function handle(): int
     {
-        /** @var class-string<ClientRegistrationHistoryContract|Model> $entityNamespaceModel */
+        /** @var class-string<Model&ClientRegistrationHistoryContract> $entityNamespaceModel */
         $entityNamespaceModel = config('twilioa2pbundle.entity_model');
 
         $unregisteredClients = $entityNamespaceModel::query()
