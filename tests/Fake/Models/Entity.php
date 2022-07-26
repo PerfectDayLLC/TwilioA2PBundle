@@ -27,7 +27,6 @@ use PerfectDayLlc\TwilioA2PBundle\Models\ClientRegistrationHistory;
  * @property string|null $contact_phone
  * @property string|null $webhook_url
  * @property string|null $fallback_webhook_url
- * @property bool $active
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  */

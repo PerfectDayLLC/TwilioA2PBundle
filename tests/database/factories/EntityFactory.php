@@ -22,10 +22,5 @@ $factory->define(Entity::class, function (Faker $faker) {
         'contact_phone' => $faker->e164PhoneNumber(),
         'webhook_url' => $faker->url(),
         'fallback_webhook_url' => $faker->url(),
-        'active' => true,
     ];
 });
-
-$factory->state(Entity::class, 'notActive', [
-    'active' => false,
-]);
