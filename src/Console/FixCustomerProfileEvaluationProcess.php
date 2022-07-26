@@ -2,9 +2,8 @@
 
 namespace PerfectDayLlc\TwilioA2PBundle\Console;
 
-use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Query\Builder as DatabaseBuilder;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use PerfectDayLlc\TwilioA2PBundle\Contracts\ClientRegistrationHistory as ClientRegistrationHistoryContract;
@@ -47,7 +46,7 @@ class FixCustomerProfileEvaluationProcess extends AbstractCommand
                 $relativeTableAlias = 'latest_type'
             )
             ->select('id')
-            ->whereExists(function (DatabaseBuilder $query) use ($relativeTableAlias) {
+            ->whereExists(function (Builder $query) use ($relativeTableAlias) {
                 /** @var class-string<Model&ClientRegistrationHistoryContract> $entityModelString */
                 $entityModelString = config('twilioa2pbundle.entity_model');
 
@@ -57,10 +56,10 @@ class FixCustomerProfileEvaluationProcess extends AbstractCommand
 
                 // Had to use `fromRaw` because Laravel 5.8 does not have the same signing for `from` as later versions
                 return $query->fromRaw("`{$entityInstance->getTable()}` AS `$tableAlias`")
-                    ->where("$relativeTableAlias.entity_id", DB::raw($tableAlias.'.'.$entityInstance->getKeyName()))
+                    ->where("$relativeTableAlias.entity_id", DB::raw("`$tableAlias`.`{$entityInstance->getKeyName()}`"))
                     ->when(
                         $this->argument('entity'),
-                        fn (EloquentBuilder $query, $entityId) => $query->where("$tableAlias.entity_id", $entityId)
+                        fn (Builder $query, $entityId) => $query->where("$tableAlias.{$entityInstance->getKeyName()}", $entityId)
                     );
             })
             ->where("$relativeTableAlias.error", true)

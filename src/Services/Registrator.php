@@ -159,6 +159,11 @@ class Registrator
         }
     }
 
+    /**
+     * Update end-user object.
+     *
+     * @throws TwilioException
+     */
     public function updateEndUserCustomerProfileInfo(
         ClientData $client,
         ClientRegistrationHistory $customerProfileBundle

@@ -11,15 +11,10 @@ use PerfectDayLlc\TwilioA2PBundle\Tests\TestCase;
 
 class FixCustomerProfileEvaluationProcessTest extends TestCase
 {
-    protected function setUp(): void
+    public function test_should_process_failing_end_user_customer_profile_info(): void
     {
-        parent::setUp();
-
         $this->setConfigForService();
-    }
 
-    public function test_should_process_pending_brand_status(): void
-    {
         /** @var Entity $expectedEntity */
         $expectedEntity = factory(Entity::class)->create();
 
@@ -27,6 +22,8 @@ class FixCustomerProfileEvaluationProcessTest extends TestCase
             'entity_id' => $expectedEntity,
             'request_type' => 'createEmptyCustomerProfileStarterBundle',
         ]);
+
+        $this->travel(1)->second();
 
         $this->createRealClientRegistrationHistoryModel([
             'entity_id' => $expectedEntity,
@@ -44,20 +41,10 @@ class FixCustomerProfileEvaluationProcessTest extends TestCase
 
         $spy = RegistratorFacade::spy();
 
-        Queue::fake();
-
         (new FixCustomerProfileEvaluationProcess($expectedEntity->getClientData()))
             ->handle();
 
         $spy->shouldHaveReceived('updateEndUserCustomerProfileInfo')
             ->once();
-
-        Queue::assertPushed(EvaluateCustomerProfileBundle::class, 1);
-
-        Queue::assertPushedOn(
-            'submit-customer-profile-bundle',
-            EvaluateCustomerProfileBundle::class,
-            fn (EvaluateCustomerProfileBundle $job) => $job->client == $expectedEntity->getClientData()
-        );
     }
 }
