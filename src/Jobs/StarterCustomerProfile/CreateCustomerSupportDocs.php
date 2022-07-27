@@ -3,18 +3,18 @@
 namespace PerfectDayLlc\TwilioA2PBundle\Jobs\StarterCustomerProfile;
 
 use PerfectDayLlc\TwilioA2PBundle\Entities\ClientData;
+use PerfectDayLlc\TwilioA2PBundle\Facades\Registrator as RegistratorFacade;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\AbstractMainJob;
 use PerfectDayLlc\TwilioA2PBundle\Models\ClientRegistrationHistory;
-use PerfectDayLlc\TwilioA2PBundle\Services\RegisterService;
 use Twilio\Exceptions\TwilioException;
 
 class CreateCustomerSupportDocs extends AbstractMainJob
 {
     private string $addressInstanceSid;
 
-    public function __construct(RegisterService $registerService, ClientData $client)
+    public function __construct(ClientData $client)
     {
-        parent::__construct($registerService, $client);
+        parent::__construct($client);
 
         $this->addressInstanceSid = ClientRegistrationHistory::getSidForAllowedStatuses(
             'createCustomerProfileAddress',
@@ -28,7 +28,7 @@ class CreateCustomerSupportDocs extends AbstractMainJob
      */
     public function handle(): void
     {
-        $this->registerService->createCustomerSupportDocs(
+        RegistratorFacade::createCustomerSupportDocs(
             $this->client,
             "{$this->client->getCompanyName()} Document Address",
             'customer_profile_address',

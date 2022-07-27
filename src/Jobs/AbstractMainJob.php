@@ -8,20 +8,15 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use PerfectDayLlc\TwilioA2PBundle\Entities\ClientData;
-use PerfectDayLlc\TwilioA2PBundle\Services\RegisterService;
 
 abstract class AbstractMainJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public RegisterService $registerService;
-
     public ClientData $client;
 
-    public function __construct(RegisterService $registerService, ClientData $client)
+    public function __construct(ClientData $client)
     {
-        $this->registerService = $registerService;
-
         $this->client = $client;
     }
 

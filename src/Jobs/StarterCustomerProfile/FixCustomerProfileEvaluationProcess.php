@@ -2,22 +2,23 @@
 
 namespace PerfectDayLlc\TwilioA2PBundle\Jobs\StarterCustomerProfile;
 
+use PerfectDayLlc\TwilioA2PBundle\Domain\EntityRegistrator;
 use PerfectDayLlc\TwilioA2PBundle\Entities\ClientData;
 use PerfectDayLlc\TwilioA2PBundle\Facades\Registrator as RegistratorFacade;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\AbstractMainJob;
 use PerfectDayLlc\TwilioA2PBundle\Models\ClientRegistrationHistory;
 use Twilio\Exceptions\TwilioException;
 
-class EvaluateCustomerProfileBundle extends AbstractMainJob
+class FixCustomerProfileEvaluationProcess extends AbstractMainJob
 {
-    public string $customerProfileBundleSid;
+    public ClientRegistrationHistory $endUserCustomerProfileInfo;
 
     public function __construct(ClientData $client)
     {
         parent::__construct($client);
 
-        $this->customerProfileBundleSid = ClientRegistrationHistory::getSidForAllowedStatuses(
-            'createEmptyCustomerProfileStarterBundle',
+        $this->endUserCustomerProfileInfo = ClientRegistrationHistory::getHistory(
+            'createEndUserCustomerProfileInfo',
             $client->getId()
         );
     }
@@ -27,9 +28,9 @@ class EvaluateCustomerProfileBundle extends AbstractMainJob
      */
     public function handle(): void
     {
-        RegistratorFacade::evaluateCustomerProfileBundle(
-            $this->client,
-            $this->customerProfileBundleSid
-        );
+        RegistratorFacade::updateEndUserCustomerProfileInfo($this->client, $this->endUserCustomerProfileInfo);
+
+        dispatch(new EvaluateCustomerProfileBundle($this->client))
+            ->onQueue(EntityRegistrator::SUBMIT_CUSTOMER_PROFILE_BUNDLE_QUEUE);
     }
 }

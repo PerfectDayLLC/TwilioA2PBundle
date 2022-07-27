@@ -1,12 +1,12 @@
 <?php
 
-namespace PerfectDayLlc\TwilioA2PBundle\Jobs\A2PBrandStarter;
+namespace PerfectDayLlc\TwilioA2PBundle\Jobs\A2PBrand\Starter;
 
 use PerfectDayLlc\TwilioA2PBundle\Entities\ClientData;
 use PerfectDayLlc\TwilioA2PBundle\Entities\Status;
+use PerfectDayLlc\TwilioA2PBundle\Facades\Registrator as RegistratorFacade;
 use PerfectDayLlc\TwilioA2PBundle\Jobs\AbstractMainJob;
 use PerfectDayLlc\TwilioA2PBundle\Models\ClientRegistrationHistory;
-use PerfectDayLlc\TwilioA2PBundle\Services\RegisterService;
 use Twilio\Exceptions\TwilioException;
 
 class SubmitA2PProfileBundle extends AbstractMainJob
@@ -15,9 +15,9 @@ class SubmitA2PProfileBundle extends AbstractMainJob
 
     public string $trustProductsInstanceSid;
 
-    public function __construct(RegisterService $registerService, ClientData $client)
+    public function __construct(ClientData $client)
     {
-        parent::__construct($registerService, $client);
+        parent::__construct($client);
 
         $this->trustProductsInstanceSid = ClientRegistrationHistory::getSidForAllowedStatuses(
             'createEmptyA2PStarterTrustBundle',
@@ -39,6 +39,6 @@ class SubmitA2PProfileBundle extends AbstractMainJob
             return;
         }
 
-        $this->registerService->submitA2PProfileBundle($this->client, $this->trustProductsInstanceSid);
+        RegistratorFacade::submitA2PProfileBundle($this->client, $this->trustProductsInstanceSid);
     }
 }

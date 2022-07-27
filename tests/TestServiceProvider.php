@@ -10,7 +10,7 @@ class TestServiceProvider extends ServiceProvider
 {
     public function register()
     {
-        $this->loadMigrationsFrom(__DIR__.'/Database/Migrations');
+        $this->loadMigrationsFrom(__DIR__.'/database/migrations');
     }
 
     public function boot()
@@ -18,7 +18,8 @@ class TestServiceProvider extends ServiceProvider
         // Needs to be in here, don't move to register
         $this->app->singleton(Factory::class, function ($app) {
             return Factory::construct(
-                $app->make(Generator::class), __DIR__.'/Database/Factories'
+                $app->make(Generator::class),
+                __DIR__.'/database/factories'
             );
         });
     }

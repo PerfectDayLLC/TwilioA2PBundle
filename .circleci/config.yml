@@ -13,11 +13,14 @@ workflows:
             - jira/notify
           matrix:
             parameters:
-              php: [php-74, php-80]
-              laravel: ["5.8", "6.0", "7.0", "8.0"]
+              php: [php-74, php-80, php-81]
+              laravel: ["5.8", "6.0", "7.0", "8.0", "9.0"]
             exclude:
-              - php: php-80
-                laravel: "5.8"
+              - { php: php-80, laravel: "5.8" }
+              - { php: php-81, laravel: "5.8" }
+              - { php: php-81, laravel: "6.0" }
+              - { php: php-81, laravel: "7.0" }
+              - { php: php-74, laravel: "9.0" }
 
 executors:
   php-74:
@@ -30,9 +33,13 @@ executors:
   php-80:
     docker:
       - image: cimg/php:8.0
+      - image: cimg/mysql:5.7
         environment:
-          DB_HOST: 127.0.0.1
-          DB_USERNAME: root
+          MYSQL_DATABASE: forge
+    resource_class: medium+
+  php-81:
+    docker:
+      - image: cimg/php:8.1
       - image: cimg/mysql:5.7
         environment:
           MYSQL_DATABASE: forge

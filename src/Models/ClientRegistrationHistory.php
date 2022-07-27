@@ -39,14 +39,17 @@ use PerfectDayLlc\TwilioA2PBundle\Entities\Status;
  * @method static \Illuminate\Database\Eloquent\Builder|static whereUpdatedAt($value)
  * @method static \Illuminate\Database\Query\Builder|static withTrashed()
  * @method static \Illuminate\Database\Query\Builder|static withoutTrashed()
+ * @mixin \Eloquent
  */
 class ClientRegistrationHistory extends Model
 {
     use SoftDeletes;
 
     public const ALLOWED_STATUSES_TYPES = [
+        Status::BUNDLES_DRAFT,
         Status::BUNDLES_PENDING_REVIEW,
         Status::BUNDLES_IN_REVIEW,
+        Status::BUNDLES_COMPLIANT,
         Status::BUNDLES_TWILIO_APPROVED,
         Status::BRAND_PENDING,
         Status::BRAND_APPROVED,
@@ -87,7 +90,7 @@ class ClientRegistrationHistory extends Model
 
         static::creating(function (self $model): void {
             // Automatically generate a UUID if using them, and not provided.
-            if (self::isEntityModelUsingUuid() && empty($model->{$model->getKeyName()})) {
+            if ($model::isEntityModelUsingUuid() && empty($model->{$model->getKeyName()})) {
                 $model->{$model->getKeyName()} = Str::uuid();
             }
         });
@@ -106,7 +109,7 @@ class ClientRegistrationHistory extends Model
 
     public function entity(): BelongsTo
     {
-        /** @var string $entityModelString */
+        /** @var class-string<Model> $entityModelString */
         $entityModelString = config('twilioa2pbundle.entity_model');
 
         /** @var Model $entityModel */
@@ -120,9 +123,9 @@ class ClientRegistrationHistory extends Model
         return $query->whereIn('status', empty($types) ? self::ALLOWED_STATUSES_TYPES : $types);
     }
 
-    private static function getHistory(string $requestType, $entityId): ?ClientRegistrationHistory
+    public static function getHistory(string $requestType, $entityId, array $types = []): ?ClientRegistrationHistory
     {
-        return static::allowedStatuses()
+        return static::allowedStatuses($types)
             ->whereRequestType($requestType)
             ->whereError(false)
             ->when($entityId, fn (Builder $query) => $query->where('entity_id', $entityId))
@@ -133,14 +136,24 @@ class ClientRegistrationHistory extends Model
     /**
      * @param  string|int|null  $entityId
      */
+    public static function getSid(string $requestType, $entityId, bool $isBundle, string $status): ?string
+    {
+        $history = self::getHistory($requestType, $entityId, [$status]);
+
+        return $history ? ($isBundle ? $history->bundle_sid : $history->object_sid) : null;
+    }
+
+    /**
+     * @param  string|int|null  $entityId
+     */
     public static function getSidForAllowedStatuses(
         string $requestType,
         $entityId = null,
         bool $isBundle = true
     ): ?string {
-        $self = self::getHistory($requestType, $entityId);
+        $history = self::getHistory($requestType, $entityId);
 
-        return $self ? ($isBundle ? $self->bundle_sid : $self->object_sid) : null;
+        return $history ? ($isBundle ? $history->bundle_sid : $history->object_sid) : null;
     }
 
     /**
@@ -148,8 +161,8 @@ class ClientRegistrationHistory extends Model
      */
     public static function getStatusForAllowedStatuses(string $requestType, $entityId = null): ?string
     {
-        $self = self::getHistory($requestType, $entityId);
+        $history = self::getHistory($requestType, $entityId);
 
-        return $self ? $self->status : null;
+        return $history ? $history->status : null;
     }
 }

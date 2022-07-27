@@ -6,7 +6,6 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Orchestra\Testbench\TestCase as BaseTestCase;
 use PerfectDayLlc\TwilioA2PBundle\Models\ClientRegistrationHistory;
-use PerfectDayLlc\TwilioA2PBundle\Services\RegisterService;
 use PerfectDayLlc\TwilioA2PBundle\Tests\Fake\Models\ClientRegistrationHistory as ClientRegistrationHistoryFake;
 use PerfectDayLlc\TwilioA2PBundle\Tests\Fake\Models\Entity;
 use PerfectDayLlc\TwilioA2PBundle\Tests\Traits\InteractsWithTime;
@@ -31,20 +30,14 @@ class TestCase extends BaseTestCase
                 ->fresh();
     }
 
-    protected function createExpectedService(): RegisterService
+    protected function setConfigForService(): void
     {
         config([
-            'services.twilio.sid' => $sid = 'twilio sid 123',
-            'services.twilio.token' => $token = 'twilio token 321',
-            'services.twilio.primary_customer_profile_sid' => $primaryCustomerSid = 'primary customer sid 555',
+            'services.twilio.sid' => 'twilio sid 123',
+            'services.twilio.token' => 'twilio token 321',
+            'services.twilio.primary_customer_profile_sid' => 'primary customer sid 555',
 
             'twilioa2pbundle.entity_model' => Entity::class,
         ]);
-
-        return new RegisterService(
-            $sid,
-            $token,
-            $primaryCustomerSid
-        );
     }
 }
