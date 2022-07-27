@@ -62,7 +62,10 @@ class FixCustomerProfileEvaluationProcess extends AbstractCommand
                     ->where("$relativeTableAlias.entity_id", DB::raw("`$tableAlias`.`{$entityInstance->getKeyName()}`"))
                     ->when(
                         $this->argument('entity'),
-                        fn (Builder $query, $entityId) => $query->where("$tableAlias.{$entityInstance->getKeyName()}", $entityId)
+                        fn (Builder $query, $entityId) => $query->where(
+                            "$tableAlias.{$entityInstance->getKeyName()}",
+                            $entityId
+                        )
                     );
             })
             ->where("$relativeTableAlias.error", true)
