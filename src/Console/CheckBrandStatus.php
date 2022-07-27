@@ -12,7 +12,7 @@ use Throwable;
 
 class CheckBrandStatus extends AbstractCommand
 {
-    protected $signature = 'a2p:check-brand-status {entity?}';
+    protected $signature = 'a2p:check-brand-status {entity? : Entity ID for the command to only run on}';
 
     protected $description = 'Twilio - Check Brand Registration Status';
 

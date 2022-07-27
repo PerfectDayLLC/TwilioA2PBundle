@@ -29,7 +29,9 @@ class FixCustomerProfileEvaluationProcessTest extends TestCase
         $this->assertSame('a2p:fix-customer-profile-evaluation-process', $command->getName(), 'Wrong signature.');
 
         $definition = new InputDefinition;
-        $definition->addArgument(new InputArgument('entity', InputArgument::OPTIONAL));
+        $definition->addArgument(
+            new InputArgument('entity', InputArgument::OPTIONAL, 'Entity ID for the command to only run on')
+        );
 
         $this->assertEquals($definition, $command->getDefinition());
 

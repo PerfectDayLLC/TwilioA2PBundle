@@ -16,7 +16,10 @@ use Throwable;
 
 class FixCustomerProfileEvaluationProcess extends AbstractCommand
 {
-    protected $signature = 'a2p:fix-customer-profile-evaluation-process {entity?}';
+    protected $signature = '
+        a2p:fix-customer-profile-evaluation-process
+        {entity? : Entity ID for the command to only run on}
+    ';
 
     protected $description = 'Twilio - Fix the customer profile evaluation process';
 

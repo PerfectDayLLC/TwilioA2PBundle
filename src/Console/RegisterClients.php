@@ -14,7 +14,7 @@ use Throwable;
 
 class RegisterClients extends AbstractCommand
 {
-    protected $signature = 'a2p:client-register {entity?}';
+    protected $signature = 'a2p:client-register {entity? : Entity ID for the command to only run on}';
 
     protected $description = 'Twilio - Register all companies for the A2P 10DLC US carrier standard compliance';
 
