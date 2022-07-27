@@ -1,5 +1,5 @@
 # TwilioA2PBundle
-Initial Usage For 10-DLC Integrations
+Initial Usage For A2P 10-DLC Integration
 
 ## Setup
 ### Needed files
@@ -21,6 +21,10 @@ information already set.
 You will also need to edit the `config\perfectdayllc\twilioa2pbundle.php` config file:
 * `entity_model` will be used to point to your main System's entity holder (use namespace).
 For example: `App\Models\Company`.
+
+#### Queue
+If you are using [`Horizon`](https://github.com/laravel/horizon) or any other way of running queues, these are the queues you must be listening to:
+https://github.com/PerfectDayLLC/TwilioA2PBundle/blob/87c3248deef802b0b26587c6ee3162cacd387f90/src/Domain/EntityRegistrator.php#L31-L39
 
 ### Configuration
 You only need to add these key/value pairs to `service.twilio`:
