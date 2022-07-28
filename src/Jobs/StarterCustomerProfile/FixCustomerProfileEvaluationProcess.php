@@ -11,7 +11,12 @@ use Twilio\Exceptions\TwilioException;
 
 class FixCustomerProfileEvaluationProcess extends AbstractMainJob
 {
-    public ClientRegistrationHistory $endUserCustomerProfileInfo;
+    /**
+     * Don't type hint this property, as Laravel 5.8 has a bug, but Laravel 6.5.2 fixed it.
+     *
+     * @var ClientRegistrationHistory
+     */
+    public $endUserCustomerProfileInfo;
 
     public function __construct(ClientData $client)
     {

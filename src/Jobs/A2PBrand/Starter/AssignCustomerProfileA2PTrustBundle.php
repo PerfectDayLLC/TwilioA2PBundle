@@ -14,15 +14,14 @@ class AssignCustomerProfileA2PTrustBundle extends AbstractMainJob
 
     public string $trustProductsInstanceSid;
 
-    public function __construct(ClientData $client, ?string $customerProfileBundleSid = null)
+    public function __construct(ClientData $client)
     {
         parent::__construct($client);
 
-        $this->customerProfileBundleSid = $customerProfileBundleSid ?:
-            ClientRegistrationHistory::getSidForAllowedStatuses(
-                'submitCustomerProfileBundle',
-                $client->getId()
-            );
+        $this->customerProfileBundleSid = ClientRegistrationHistory::getSidForAllowedStatuses(
+            'submitCustomerProfileBundle',
+            $client->getId()
+        );
 
         $this->trustProductsInstanceSid = ClientRegistrationHistory::getSidForAllowedStatuses(
             'createEmptyA2PStarterTrustBundle',

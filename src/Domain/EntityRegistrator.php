@@ -92,7 +92,7 @@ class EntityRegistrator
 
                     return;
                 case 'createEmptyA2PStarterTrustBundle':
-                    dispatch(new AssignCustomerProfileA2PTrustBundle($client, $history->bundle_sid ?? null))
+                    dispatch(new AssignCustomerProfileA2PTrustBundle($client))
                         ->onQueue(static::SUBMIT_A2P_PROFILE_BUNDLE_QUEUE);
 
                     return;
