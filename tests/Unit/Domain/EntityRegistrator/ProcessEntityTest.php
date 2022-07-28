@@ -330,8 +330,7 @@ class ProcessEntityTest extends TestCase
         $this->assertOnlyPushedOn(
             'submit-a2p-profile-bundle',
             AssignCustomerProfileA2PTrustBundle::class,
-            fn (AssignCustomerProfileA2PTrustBundle $job) =>
-                $job->client == $entity->getClientData() &&
+            fn (AssignCustomerProfileA2PTrustBundle $job) => $job->client == $entity->getClientData() &&
                 $job->customerProfileBundleSid === $customerProfileBundleHistory->bundle_sid &&
                 $job->trustProductsInstanceSid === $emptyA2PStarterTrustBundleHistory->bundle_sid
         );
