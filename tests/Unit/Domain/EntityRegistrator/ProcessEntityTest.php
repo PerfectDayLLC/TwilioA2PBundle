@@ -312,10 +312,16 @@ class ProcessEntityTest extends TestCase
         /** @var Entity $entity */
         $entity = factory(Entity::class)->create(self::ENTITY_DATA);
 
-        $history = $this->createRealClientRegistrationHistoryModel([
+        $customerProfileBundleHistory = $this->createRealClientRegistrationHistoryModel([
+            'entity_id' => $entity,
+            'request_type' => 'submitCustomerProfileBundle',
+        ]);
+
+        $this->travel(1)->second();
+
+        $emptyA2PStarterTrustBundleHistory = $this->createRealClientRegistrationHistoryModel([
             'entity_id' => $entity,
             'request_type' => 'createEmptyA2PStarterTrustBundle',
-            'status' => 'draft',
         ]);
 
         $this->artisan(RegisterClients::class)
@@ -324,10 +330,9 @@ class ProcessEntityTest extends TestCase
         $this->assertOnlyPushedOn(
             'submit-a2p-profile-bundle',
             AssignCustomerProfileA2PTrustBundle::class,
-            function (AssignCustomerProfileA2PTrustBundle $job) use ($entity, $history) {
-                return $job->client == $entity->getClientData() &&
-                       $job->customerProfileBundleSid === $history->bundle_sid;
-            }
+            fn (AssignCustomerProfileA2PTrustBundle $job) => $job->client == $entity->getClientData() &&
+                $job->customerProfileBundleSid === $customerProfileBundleHistory->bundle_sid &&
+                $job->trustProductsInstanceSid === $emptyA2PStarterTrustBundleHistory->bundle_sid
         );
     }
 
